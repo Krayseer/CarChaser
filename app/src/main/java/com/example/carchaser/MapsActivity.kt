@@ -1,15 +1,26 @@
 package com.example.carchaser
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.pm.PackageManager.*
+import android.Manifest.permission.*
+import android.graphics.Color
+import android.location.Location
 import android.os.Bundle
-
+import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import com.example.carchaser.databinding.ActivityMapsBinding
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.example.carchaser.databinding.ActivityMapsBinding
+import com.google.android.gms.maps.model.PolylineOptions
+import com.google.maps.DirectionsApi
+import com.google.maps.GeoApiContext
+import com.google.maps.model.TravelMode
+
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -22,27 +33,81 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        val btnAddMarker = findViewById<Button>(R.id.btn_add_marker)
+        btnAddMarker.setOnClickListener {
+            addParkingPlace()
+        }
+    }
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        mMap = googleMap
+        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) {
+            mMap.isMyLocationEnabled = true
+            LocationServices
+                .getFusedLocationProviderClient(this).lastLocation
+                .addOnSuccessListener { location: Location? ->
+                    if (location != null) {
+                        val currentUserPosition = LatLng(location.latitude, location.longitude)
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentUserPosition, 18f))
+                    }
+                }
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(ACCESS_FINE_LOCATION), 0)
+        }
     }
 
     /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
+     * Функция построения маршрута от пользователя до маркера(автомобиля)
      */
-    override fun onMapReady(googleMap: GoogleMap) {
-        mMap = googleMap
+    private fun showRoute(origin: LatLng, destination: LatLng) {
+        val directionsApi = GeoApiContext.Builder()
+            .apiKey("AIzaSyBg8K2t1NK9KDDD-rj-Zf-d-gqNaW3Xwb0") // замените на свой API-ключ
+            .build()
 
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        val request = DirectionsApi.newRequest(directionsApi)
+            .mode(TravelMode.WALKING) // выбираем режим перемещения (в данном случае - езда на машине)
+            .origin(com.google.maps.model.LatLng(origin.latitude, origin.longitude))
+            .destination(com.google.maps.model.LatLng(destination.latitude, destination.longitude))
+
+        val response = request.await()
+
+        val legs = response.routes[0].legs
+        for (i in 0 until legs.size) {
+            val steps = legs[i].steps
+            for (j in 0 until steps.size) {
+                val points = steps[j].polyline.decodePath()
+                for (point in points) {
+                    mMap.addPolyline(
+                        PolylineOptions()
+                            .add(LatLng(point.lat, point.lng))
+                            .color(Color.BLUE)
+                            .width(5f)
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Функция добавления маркера на текущее местоположение пользователя (не работает, возможно
+     * из-за того, что нужен платный API ключ, но ошибка указывает именно на API ключ
+     */
+    private fun addParkingPlace() {
+        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) {
+            LocationServices
+                .getFusedLocationProviderClient(this).lastLocation
+                .addOnSuccessListener { location: Location? ->
+                    if (location != null) {
+                        val currentUserPosition = LatLng(location.latitude, location.longitude)
+
+                        mMap.clear()
+                        mMap.addMarker(MarkerOptions().position(currentUserPosition).title("Последняя стоянка"))
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentUserPosition, 18f))
+                    }
+                }
+        }
     }
 }
