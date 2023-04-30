@@ -27,6 +27,7 @@ class NoteActivity : AppCompatActivity() {
             intent.putExtra("ButtonAddMark", false)
             intent.putExtra("ButtonInfo", true)
             startActivity(intent)
+            overridePendingTransition(androidx.appcompat.R.anim.abc_popup_enter, androidx.appcompat.R.anim.abc_popup_exit)
         }
     }
 }

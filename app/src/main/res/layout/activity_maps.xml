@@ -19,8 +19,16 @@
         android:layout_height="wrap_content"
         android:text="@string/add_marker"
         android:layout_gravity="bottom|left"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="70dp"
         android:layout_marginLeft="40dp"/>
+
+    <Button
+        android:id="@+id/button_dark_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/dark_mode"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="16dp" />
 
     <Button
         android:id="@+id/btn_info"
@@ -29,7 +37,7 @@
         android:text="Уточнить"
         android:enabled="false"
         android:layout_gravity="bottom|right"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="70dp"
         android:layout_marginRight="40dp"/>
 
 </FrameLayout>
