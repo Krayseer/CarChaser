@@ -2,9 +2,11 @@ package com.example.carchaser
 
 import android.content.pm.PackageManager.*
 import android.Manifest.permission.*
+import android.content.Intent
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -17,6 +19,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
 import com.google.maps.model.TravelMode
@@ -26,6 +29,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
+    private var markerIsAdd: Boolean = false
+    private lateinit var position: LatLng
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,14 +41,42 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
+        val btnCreateNote = findViewById<Button>(R.id.btn_info)
+
         val btnAddMarker = findViewById<Button>(R.id.btn_add_marker)
-        btnAddMarker.setOnClickListener {
-            addParkingPlace()
+
+        val arguments = intent.extras
+        if (arguments != null) {
+            btnCreateNote.isEnabled = arguments.getBoolean("ButtonInfo")
+            btnAddMarker.isEnabled = arguments.getBoolean("ButtonAddMark")
         }
+        btnAddMarker.setOnClickListener {
+            if (!markerIsAdd){
+                markerIsAdd = true
+                addParkingPlace()
+                btnCreateNote.isEnabled = true
+                btnAddMarker.text = "Удалить"
+                btnAddMarker.isEnabled = false
+            }
+        }
+
+        btnCreateNote.setOnClickListener {
+            val intent = Intent(this, NoteActivity::class.java)
+            intent.putExtra("position", position)
+            startActivity(intent)
+        }
+
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        val arguments = intent.extras
+        if (arguments != null) {
+            position = arguments.get("coordinates") as LatLng
+            mMap.clear()
+            mMap.addMarker(MarkerOptions().position(position).title("Последняя стоянка"))
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 18f))
+        }
         if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) {
             mMap.isMyLocationEnabled = true
             LocationServices
@@ -102,6 +135,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 .addOnSuccessListener { location: Location? ->
                     if (location != null) {
                         val currentUserPosition = LatLng(location.latitude, location.longitude)
+                        position = currentUserPosition
 
                         mMap.clear()
                         mMap.addMarker(MarkerOptions().position(currentUserPosition).title("Последняя стоянка"))
