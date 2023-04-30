@@ -21,7 +21,7 @@
             android:value="AIzaSyC03dgwThnIcBdVeQ8ZU-pWp1m7jJaiqrU" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".YandexMaps"
             android:exported="true"
             android:label="@string/title_activity_maps">
             <intent-filter>

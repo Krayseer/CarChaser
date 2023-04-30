@@ -2,4 +2,6 @@
     <string name="app_name">CarChaser</string>
     <string name="title_activity_maps">CarChaser</string>
     <string name="add_marker">Парковаться</string>
+    <string name="dark_mode">Темная тема</string>
+    <string name="parking">Парковаться</string>
 </resources>
