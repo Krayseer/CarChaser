@@ -2,12 +2,17 @@ package com.example.carchaser
 
 import android.content.pm.PackageManager.*
 import android.Manifest.permission.*
+import android.content.ContentValues
 import android.content.Intent
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
 import android.graphics.Color
 import android.location.Geocoder
 import android.location.Location
+import android.os.Build
 import android.os.Bundle
 import android.widget.Button
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.carchaser.databinding.ActivityMapsBinding
@@ -25,6 +30,8 @@ import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
 import com.google.maps.model.TravelMode
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -42,7 +49,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var btnAddMarker: Button
     private lateinit var btnCreateNote: Button
     private lateinit var btnDarkMode: Button
+    private lateinit var btnHistory: Button
 
+
+    private lateinit var dbHelper: SQLiteOpenHelper
+    private lateinit var dateTime:String
+    private lateinit var adres:String
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -51,12 +66,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        dbHelper = MyDatabaseHelper(this)
+
         mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         btnCreateNote = findViewById(R.id.btn_info)
         btnAddMarker = findViewById(R.id.btn_add_marker)
         btnDarkMode = findViewById(R.id.button_dark_mode)
+        btnHistory = findViewById(R.id.btn_history)
 
         val arguments = intent.extras
         if (arguments != null) {
@@ -79,6 +97,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     btnAddMarker.text = "Удалить"
                     btnAddMarker.isEnabled = false
                 }
+                else {
+                    mMap.clear()
+                    markerIsAdd = false
+                    btnCreateNote.isEnabled = false
+                    btnAddMarker.text = "Парковаться"
+                    dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
+                    adres = getAddressFromCoordinates(position).toString()
+                    val db: SQLiteDatabase = dbHelper.writableDatabase
+                    val values: ContentValues = ContentValues()
+                    values.put("date", dateTime)
+                    values.put("place", adres)
+
+                    db.insert("my_table", null, values)
+                    db.close()
+                }
             }
         }
 
@@ -100,6 +133,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             intent.putExtra("position", position)
             startActivity(intent)
             overridePendingTransition(androidx.appcompat.R.anim.abc_popup_enter, androidx.appcompat.R.anim.abc_popup_exit)
+        }
+
+        btnHistory.setOnClickListener {
+            val intent = Intent(this, HistoryActivity::class.java)
+            if (markerIsAdd)
+                intent.putExtra("position", position)
+            startActivity(intent)
         }
 
     }
@@ -193,6 +233,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 .addOnSuccessListener { location: Location? ->
                     if (location != null) {
                         val currentUserPosition = LatLng(location.latitude, location.longitude)
+                        position = currentUserPosition
+
+                        mMap.clear()
+                        mMap.addMarker(MarkerOptions().position(currentUserPosition).title("Последняя стоянка"))
                         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentUserPosition, 18f))
                     }
                 }

@@ -23,6 +23,15 @@
         android:layout_marginLeft="40dp"/>
 
     <Button
+        android:id="@+id/btn_history"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="История"
+        android:layout_gravity="top|left"
+        android:layout_marginBottom="70dp"
+        android:layout_marginLeft="40dp"/>
+
+    <Button
         android:id="@+id/button_dark_mode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
