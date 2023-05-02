@@ -108,4 +108,10 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_databas
 
         return data
     }
+
+    fun deleteAllData() {
+        val db = this.writableDatabase
+        db.delete("my_table", null, null)
+        db.close()
+    }
 }

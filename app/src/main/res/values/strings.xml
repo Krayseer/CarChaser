@@ -3,4 +3,10 @@
     <string name="title_activity_maps">CarChaser</string>
     <string name="add_marker">Парковаться</string>
     <string name="dark_mode">Темная тема</string>
+    <string name="button_return">Вернуться</string>
+    <string name="history_title">История парковок</string>
+    <string name="address_title">Адрес</string>
+    <string name="date_title">Дата</string>
+    <string name="time_title">Время</string>
+    <string name="delete_history_button">Удалить историю</string>
 </resources>
