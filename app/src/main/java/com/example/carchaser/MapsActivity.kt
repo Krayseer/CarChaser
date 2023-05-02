@@ -3,7 +3,9 @@ package com.example.carchaser
 import android.content.pm.PackageManager.*
 import android.Manifest.permission.*
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.graphics.Color
@@ -77,6 +79,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         btnHistory = findViewById(R.id.btn_history)
         btnCreateNote.isEnabled = false
 
+        val sharedPref = this.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
+        if (isFirstTimeAppLaunch(this)) {
+            sharedPref.edit().putBoolean("isNight", false).apply()
+        }
+
 
 //        val arguments = intent.extras
 //        if (arguments != null) {
@@ -125,13 +132,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
          */
         btnDarkMode.setOnClickListener {
             //Считывать переменную isNight из настроек
-            isNight = if(!isNight){
-                mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.night_mode))
-                true
-            } else {
+            if (sharedPref.getBoolean("isNight", false)) {
                 mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
-                false
+                sharedPref.edit().putBoolean("isNight", false).apply()
             }
+            else {
+                mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.night_mode))
+                sharedPref.edit().putBoolean("isNight", true).apply()
+            }
+
+
+//            isNight = if(!isNight){
+//                mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.night_mode))
+//                true
+//            } else {
+//                mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
+//                false
+//            }
         }
 
         btnCreateNote.setOnClickListener {
@@ -152,8 +169,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        val sharedPref = this.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
+        if (sharedPref.getBoolean("isNight", false)) {
+            mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.night_mode))
+        }
+        else {
+            mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
+        }
         // Устанавливать значение исходя из настройки
-        mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
+        //mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
 
         val dbHelper = MyDatabaseHelper(this)
         val dataActive = dbHelper.getDataActive()
@@ -273,6 +297,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 // Добавить обновление позиции в бд активной метки
             }
         })
+    }
+
+    /**
+     * Функция проверяет, запущено приложение первый раз или нет
+     */
+    fun isFirstTimeAppLaunch(context: Context): Boolean {
+        val sharedPref = context.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
+        val isFirstTime = sharedPref.getBoolean("isFirstTime", true)
+
+        if (isFirstTime) {
+            // сохраняем флаг, что приложение было запущено в первый раз
+            sharedPref.edit().putBoolean("isFirstTime", false).apply()
+        }
+
+        return isFirstTime
     }
 
 }
