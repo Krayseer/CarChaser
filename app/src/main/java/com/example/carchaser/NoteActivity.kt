@@ -8,24 +8,24 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class NoteActivity : AppCompatActivity() {
-    private lateinit var coord: LatLng
+    //private lateinit var coord: LatLng
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note)
 
-        val arguments = intent.extras
-        if (arguments != null) {
-            coord = arguments.get("position") as LatLng
-        }
+//        val arguments = intent.extras
+//        if (arguments != null) {
+//            coord = arguments.get("position") as LatLng
+//        }
 
         val buttonReturn = findViewById<Button>(R.id.button_return)
 
         buttonReturn.setOnClickListener {
             val intent = Intent(this, MapsActivity::class.java)
-            intent.putExtra("coordinates", coord)
-            intent.putExtra("ButtonAddMark", false)
-            intent.putExtra("ButtonInfo", true)
+            //intent.putExtra("coordinates", coord)
+            //intent.putExtra("ButtonAddMark", false)
+            //intent.putExtra("ButtonInfo", true)
             startActivity(intent)
             overridePendingTransition(androidx.appcompat.R.anim.abc_popup_enter, androidx.appcompat.R.anim.abc_popup_exit)
         }

@@ -52,7 +52,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var btnHistory: Button
 
 
-    private lateinit var dbHelper: SQLiteOpenHelper
+    //private lateinit var dbHelper: SQLiteOpenHelper
     private lateinit var dateTime:String
     private lateinit var adres:String
 
@@ -66,7 +66,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        dbHelper = MyDatabaseHelper(this)
+        val dbHelper = MyDatabaseHelper(this)
 
         mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -75,12 +75,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         btnAddMarker = findViewById(R.id.btn_add_marker)
         btnDarkMode = findViewById(R.id.button_dark_mode)
         btnHistory = findViewById(R.id.btn_history)
+        btnCreateNote.isEnabled = false
 
-        val arguments = intent.extras
-        if (arguments != null) {
-            btnCreateNote.isEnabled = arguments.getBoolean("ButtonInfo")
-            btnAddMarker.isEnabled = arguments.getBoolean("ButtonAddMark")
-        }
+
+//        val arguments = intent.extras
+//        if (arguments != null) {
+//            btnCreateNote.isEnabled = arguments.getBoolean("ButtonInfo")
+//            btnAddMarker.isEnabled = arguments.getBoolean("ButtonAddMark")
+//        }
 
         btnAddMarker.setOnClickListener {
             if(ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED){
@@ -91,26 +93,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                 val currentUserPosition = LatLng(location.latitude, location.longitude)
                                 position = currentUserPosition
                                 addParkingPlace(position)
+                                val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
+                                val adress = getAddressFromCoordinates(position).toString()
+                                dbHelper.insertData(date, adress, 1, position.latitude, position.longitude)
                             }
                         }
                     btnCreateNote.isEnabled = true
                     btnAddMarker.text = "Удалить"
-                    btnAddMarker.isEnabled = false
                 }
                 else {
+                    dbHelper.updateActivity()
                     mMap.clear()
                     markerIsAdd = false
                     btnCreateNote.isEnabled = false
                     btnAddMarker.text = "Парковаться"
-                    dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
-                    adres = getAddressFromCoordinates(position).toString()
-                    val db: SQLiteDatabase = dbHelper.writableDatabase
-                    val values: ContentValues = ContentValues()
-                    values.put("date", dateTime)
-                    values.put("place", adres)
-
-                    db.insert("my_table", null, values)
-                    db.close()
+//                    dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
+//                    adres = getAddressFromCoordinates(position).toString()
+//                    val db: SQLiteDatabase = dbHelper.writableDatabase
+//                    val values: ContentValues = ContentValues()
+//                    values.put("date", dateTime)
+//                    values.put("place", adres)
+//
+//                    db.insert("my_table", null, values)
+//                    db.close()
                 }
             }
         }
@@ -119,6 +124,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
          * Тут надо сделать считывание переменной isNight из БД
          */
         btnDarkMode.setOnClickListener {
+            //Считывать переменную isNight из настроек
             isNight = if(!isNight){
                 mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.night_mode))
                 true
@@ -130,7 +136,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         btnCreateNote.setOnClickListener {
             val intent = Intent(this, NoteActivity::class.java)
-            intent.putExtra("position", position)
+            //intent.putExtra("position", position)
             startActivity(intent)
             overridePendingTransition(androidx.appcompat.R.anim.abc_popup_enter, androidx.appcompat.R.anim.abc_popup_exit)
         }
@@ -146,17 +152,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        // Устанавливать значение исходя из настройки
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
+
+        val dbHelper = MyDatabaseHelper(this)
+        val dataActive = dbHelper.getDataActive()
+        if (dataActive.isNotEmpty()) {
+            position = LatLng(dataActive[0].latitude, dataActive[0].longitude)
+            addParkingPlace(position)
+            markerIsAdd = true
+            btnCreateNote.isEnabled = true
+            btnAddMarker.text = "Удалить"
+        }
 
         updateParkingPositionListener()
         initCheckGeoPosition()
         initMoveCamera()
 
-        val arguments = intent.extras
-        if (arguments != null) {
-            position = arguments.get("coordinates") as LatLng
-            addParkingPlace(position)
-        }
+//        val arguments = intent.extras
+//        if (arguments != null) {
+//            position = arguments.get("coordinates") as LatLng
+//            addParkingPlace(position)
+//        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -235,8 +252,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         val currentUserPosition = LatLng(location.latitude, location.longitude)
                         position = currentUserPosition
 
-                        mMap.clear()
-                        mMap.addMarker(MarkerOptions().position(currentUserPosition).title("Последняя стоянка"))
                         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentUserPosition, 18f))
                     }
                 }
@@ -255,6 +270,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             override fun onMarkerDragEnd(marker: Marker) {
                 position = marker.position
+                // Добавить обновление позиции в бд активной метки
             }
         })
     }
