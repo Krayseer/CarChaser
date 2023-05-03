@@ -33,9 +33,8 @@
 
     <Button
         android:id="@+id/button_dark_mode"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/dark_mode"
+        android:layout_width="125dp"
+        android:layout_height="50dp"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="16dp" />
 

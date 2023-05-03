@@ -55,7 +55,7 @@ class HistoryActivity : AppCompatActivity() {
 
         btnDelete.setOnClickListener {
             dbHelper.deleteAllData()
-            layout.removeViews(3, layout.childCount - 3)
+            layout.removeViews(2, layout.childCount - 2 )
 
         }
     }
