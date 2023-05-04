@@ -24,19 +24,21 @@
 
     <Button
         android:id="@+id/btn_history"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="История"
-        android:layout_gravity="top|left"
-        android:layout_marginBottom="70dp"
-        android:layout_marginLeft="40dp"/>
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:foreground="@drawable/ic_history_foreground"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="70dp"
+        android:layout_marginEnd="5dp"/>
 
     <Button
         android:id="@+id/button_dark_mode"
-        android:layout_width="125dp"
-        android:layout_height="50dp"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="16dp" />
+        android:layout_width="70dp"
+        android:layout_height="40dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="11dp"
+        android:layout_marginEnd="60dp"
+        />
 
     <Button
         android:id="@+id/btn_info"
