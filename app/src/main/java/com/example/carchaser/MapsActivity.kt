@@ -125,6 +125,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 //                    db.close()
                 }
             }
+            else {
+                /**
+                 * Тут нужно дописать то что находится выше, то есть вынести в функцию и тд
+                 */
+                val defPlace = LatLng(56.8519, 60.6122)
+                addParkingPlace(defPlace)
+            }
         }
 
         /**
@@ -284,6 +291,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentUserPosition, 18f))
                     }
                 }
+        }
+        else {
+            val ekbPosition = LatLng(56.8519, 60.6122)
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ekbPosition, 10f))
         }
     }
 
