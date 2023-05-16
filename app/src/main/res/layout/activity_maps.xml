@@ -18,15 +18,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/add_marker"
-        android:layout_gravity="bottom|left"
+        android:layout_gravity="bottom|start"
         android:layout_marginBottom="70dp"
-        android:layout_marginLeft="40dp"/>
+        android:layout_marginStart="40dp"/>
 
     <Button
         android:id="@+id/btn_history"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:foreground="@drawable/ic_history_foreground"
+        android:foreground="@drawable/historyicon"
         android:layout_gravity="top|end"
         android:layout_marginTop="70dp"
         android:layout_marginEnd="5dp"/>
@@ -37,17 +37,16 @@
         android:layout_height="40dp"
         android:layout_gravity="top|end"
         android:layout_marginTop="11dp"
-        android:layout_marginEnd="60dp"
-        />
+        android:layout_marginEnd="60dp"/>
 
     <Button
         android:id="@+id/btn_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Уточнить"
+        android:text="@string/clarify"
         android:enabled="false"
-        android:layout_gravity="bottom|right"
+        android:layout_gravity="bottom|end"
         android:layout_marginBottom="70dp"
-        android:layout_marginRight="40dp"/>
+        android:layout_marginEnd="40dp"/>
 
 </FrameLayout>

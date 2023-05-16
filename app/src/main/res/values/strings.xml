@@ -9,4 +9,5 @@
     <string name="date_title">Дата</string>
     <string name="time_title">Время</string>
     <string name="delete_history_button">Удалить историю</string>
+    <string name="clarify">Уточнить</string>
 </resources>
