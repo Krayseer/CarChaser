@@ -96,15 +96,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 if (!markerIsAdd){
                     markerIsAdd = true
                     fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-                            if (location != null) {
-                                val currentUserPosition = LatLng(location.latitude, location.longitude)
-                                position = currentUserPosition
-                                addParkingPlace(position)
-                                val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
-                                val adress = getAddressFromCoordinates(position).toString()
-                                dbHelper.insertData(date, adress, 1, position.latitude, position.longitude)
-                            }
+                        if (location != null) {
+                            val currentUserPosition = LatLng(location.latitude, location.longitude)
+                            position = currentUserPosition
+                            addParkingPlace(position)
+                            val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
+                            val adress = getAddressFromCoordinates(position).toString()
+                            dbHelper.insertData(date, adress, 1, position.latitude, position.longitude)
                         }
+                    }
                     btnCreateNote.isEnabled = true
                     btnAddMarker.text = "Удалить"
                 }
@@ -138,17 +138,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
          * Тут надо сделать считывание переменной isNight из БД
          */
         if (sharedPref.getBoolean("isNight", false))
-            btnDarkMode.foreground = resources.getDrawable(R.drawable.nightmode_foreground, null)
-        else btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_foreground, null)
+            btnDarkMode.foreground = resources.getDrawable(R.drawable.nightmode_hd, null)
+        else btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_hd, null)
         btnDarkMode.setOnClickListener {
             //Считывать переменную isNight из настроек
             if (sharedPref.getBoolean("isNight", false)) {
-                btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_foreground, null)
+                btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_hd, null)
                 mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
                 sharedPref.edit().putBoolean("isNight", false).apply()
             }
             else {
-                btnDarkMode.foreground = resources.getDrawable(R.drawable.nightmode_foreground, null)
+                btnDarkMode.foreground = resources.getDrawable(R.drawable.nightmode_hd, null)
                 mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.night_mode))
                 sharedPref.edit().putBoolean("isNight", true).apply()
             }

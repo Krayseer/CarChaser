@@ -24,20 +24,22 @@
 
     <Button
         android:id="@+id/btn_history"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:foreground="@drawable/historyicon"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:background="@drawable/oval_background"
+        android:foreground="@drawable/ic_history_foreground"
         android:layout_gravity="top|end"
         android:layout_marginTop="70dp"
         android:layout_marginEnd="5dp"/>
 
     <Button
         android:id="@+id/button_dark_mode"
-        android:layout_width="70dp"
-        android:layout_height="40dp"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="11dp"
-        android:layout_marginEnd="60dp"/>
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_gravity="top|start"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="10dp"
+        android:background="@android:color/transparent"/>
 
     <Button
         android:id="@+id/btn_info"
