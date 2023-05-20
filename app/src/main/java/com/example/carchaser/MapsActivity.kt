@@ -2,18 +2,18 @@ package com.example.carchaser
 
 import android.content.pm.PackageManager.*
 import android.Manifest.permission.*
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
 import android.graphics.Color
 import android.location.Geocoder
 import android.location.Location
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -44,7 +44,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
-    private var isNight: Boolean = false
     private var markerIsAdd: Boolean = false
     private lateinit var position: LatLng
 
@@ -52,11 +51,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var btnCreateNote: Button
     private lateinit var btnDarkMode: Button
     private lateinit var btnHistory: Button
-
-
-    //private lateinit var dbHelper: SQLiteOpenHelper
-    private lateinit var dateTime:String
-    private lateinit var adres:String
+    private lateinit var btnShared: Button
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -77,19 +72,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         btnAddMarker = findViewById(R.id.btn_add_marker)
         btnDarkMode = findViewById(R.id.button_dark_mode)
         btnHistory = findViewById(R.id.btn_history)
+        btnShared = findViewById(R.id.btn_shared)
         btnCreateNote.isEnabled = false
 
+
         val sharedPref = this.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
-        if (isFirstTimeAppLaunch(this)) {
+        if (isFirstTimeAppLaunch()) {
             sharedPref.edit().putBoolean("isNight", false).apply()
         }
-
-
-//        val arguments = intent.extras
-//        if (arguments != null) {
-//            btnCreateNote.isEnabled = arguments.getBoolean("ButtonInfo")
-//            btnAddMarker.isEnabled = arguments.getBoolean("ButtonAddMark")
-//        }
 
         btnAddMarker.setOnClickListener {
             if(ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED){
@@ -101,8 +91,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                             position = currentUserPosition
                             addParkingPlace(position)
                             val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
-                            val adress = getAddressFromCoordinates(position).toString()
-                            dbHelper.insertData(date, adress, 1, position.latitude, position.longitude)
+                            val address = getAddressFromCoordinates(position).toString()
+                            dbHelper.insertData(date, address, 1, position.latitude, position.longitude)
                         }
                     }
                     btnCreateNote.isEnabled = true
@@ -137,11 +127,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         /**
          * Тут надо сделать считывание переменной isNight из БД
          */
-        if (sharedPref.getBoolean("isNight", false))
+        if (sharedPref.getBoolean("isNight", false)) {
             btnDarkMode.foreground = resources.getDrawable(R.drawable.nightmode_hd, null)
-        else btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_hd, null)
+        } else {
+            btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_hd, null)
+        }
+
+        btnShared.setOnClickListener {
+            val uri = Uri.parse("carchaser://maps?lat=${position.latitude}&lng=${position.longitude}")
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = "text/plain"
+            intent.putExtra(Intent.EXTRA_TEXT, uri.toString())
+            val chooserIntent = Intent.createChooser(intent, "Поделиться ссылкой")
+            chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(chooserIntent)
+        }
+
         btnDarkMode.setOnClickListener {
-            //Считывать переменную isNight из настроек
             if (sharedPref.getBoolean("isNight", false)) {
                 btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_hd, null)
                 mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
@@ -152,34 +154,31 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.night_mode))
                 sharedPref.edit().putBoolean("isNight", true).apply()
             }
-
-
-//            isNight = if(!isNight){
-//                mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.night_mode))
-//                true
-//            } else {
-//                mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
-//                false
-//            }
         }
 
         btnCreateNote.setOnClickListener {
             val intent = Intent(this, NoteActivity::class.java)
-            //intent.putExtra("position", position)
             startActivity(intent)
             overridePendingTransition(androidx.appcompat.R.anim.abc_popup_enter, androidx.appcompat.R.anim.abc_popup_exit)
         }
 
         btnHistory.setOnClickListener {
             val intent = Intent(this, HistoryActivity::class.java)
-            if (markerIsAdd)
+            if (markerIsAdd) {
                 intent.putExtra("position", position)
+            }
             startActivity(intent)
         }
 
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
+
+        if(!isNetworkConnected()){
+            Toast.makeText(this, "Ошибка загрузки карты", Toast.LENGTH_LONG).show()
+            return;
+        }
+
         mMap = googleMap
         val sharedPref = this.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
         if (sharedPref.getBoolean("isNight", false)) {
@@ -188,8 +187,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         else {
             mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
         }
-        // Устанавливать значение исходя из настройки
-        //mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
+
+        val intent = intent
+        if (intent != null && intent.data != null && intent.scheme == "carchaser") {
+            val uri = intent.data
+            val lat = uri?.getQueryParameter("lat")?.toDouble()
+            val lng = uri?.getQueryParameter("lng")?.toDouble()
+            if (lat != null && lng != null) {
+                addParkingPlace(LatLng(lat, lng))
+            }
+        }
 
         val dbHelper = MyDatabaseHelper(this)
         val dataActive = dbHelper.getDataActive()
@@ -205,11 +212,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         initCheckGeoPosition()
         initMoveCamera()
 
-//        val arguments = intent.extras
-//        if (arguments != null) {
-//            position = arguments.get("coordinates") as LatLng
-//            addParkingPlace(position)
-//        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -244,6 +246,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     /**
      * Функция добавления маркера на текущее местоположение пользователя
+     * @param markerPosition позиция, на которую нужно поставить маркер
      */
     private fun addParkingPlace(markerPosition: LatLng) {
         mMap.addMarker(MarkerOptions()
@@ -285,10 +288,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 .getFusedLocationProviderClient(this).lastLocation
                 .addOnSuccessListener { location: Location? ->
                     if (location != null) {
-                        val currentUserPosition = LatLng(location.latitude, location.longitude)
-                        position = currentUserPosition
-
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentUserPosition, 18f))
+                        position = LatLng(location.latitude, location.longitude)
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 18f))
                     }
                 }
         }
@@ -318,16 +319,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     /**
      * Функция проверяет, запущено приложение первый раз или нет
      */
-    fun isFirstTimeAppLaunch(context: Context): Boolean {
-        val sharedPref = context.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
+    private fun isFirstTimeAppLaunch(): Boolean {
+        val sharedPref = this.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
         val isFirstTime = sharedPref.getBoolean("isFirstTime", true)
-
         if (isFirstTime) {
-            // сохраняем флаг, что приложение было запущено в первый раз
             sharedPref.edit().putBoolean("isFirstTime", false).apply()
         }
-
         return isFirstTime
+    }
+
+    private fun isNetworkConnected(): Boolean {
+        val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkCapabilities = connectivityManager.activeNetwork ?: return false
+        val activeNetwork = connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
+        return when {
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+            else -> false
+        }
     }
 
 }
