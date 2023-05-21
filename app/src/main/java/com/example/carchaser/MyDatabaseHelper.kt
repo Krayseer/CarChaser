@@ -210,4 +210,11 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_databas
         db.execSQL(query)
         db.close()
     }
+
+    fun deleteStroke(datee: String) {
+        val db = this.writableDatabase
+        val query = "DELETE FROM my_table WHERE date = \"$datee\""
+        db.execSQL(query)
+        db.close()
+    }
 }

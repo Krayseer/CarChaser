@@ -28,7 +28,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class NoteActivity : AppCompatActivity() {
-    //private lateinit var coord: LatLng
     private var imageUri: Uri? = null
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private val CAMERA_REQUEST_CODE = 1
@@ -39,11 +38,6 @@ class NoteActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note)
-
-//        val arguments = intent.extras
-//        if (arguments != null) {
-//            coord = arguments.get("position") as LatLng
-//        }
 
         val buttonReturn = findViewById<Button>(R.id.button_return)
         val takePictureButton = findViewById<Button>(R.id.button_photo)
@@ -60,9 +54,6 @@ class NoteActivity : AppCompatActivity() {
 
         buttonReturn.setOnClickListener {
             val intent = Intent(this, MapsActivity::class.java)
-            //intent.putExtra("coordinates", coord)
-            //intent.putExtra("ButtonAddMark", false)
-            //intent.putExtra("ButtonInfo", true)
             startActivity(intent)
             overridePendingTransition(androidx.appcompat.R.anim.abc_popup_enter, androidx.appcompat.R.anim.abc_popup_exit)
         }
@@ -72,7 +63,6 @@ class NoteActivity : AppCompatActivity() {
         val photoFile: File? = findPhotoFile(dbHelper.getPhotoData()[0])
 
         if (photoFile != null) {
-            // Если фото найдено, загрузите его в ImageView
             val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
             imageView.setImageBitmap(bitmap)
         } else {
