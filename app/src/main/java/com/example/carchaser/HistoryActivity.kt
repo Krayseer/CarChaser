@@ -1,6 +1,7 @@
 package com.example.carchaser
 
 import android.app.AlertDialog
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
@@ -28,10 +29,6 @@ class HistoryActivity : AppCompatActivity() {
         setContentView(R.layout.activity_history)
 
         val dbHelper = MyDatabaseHelper(this)
-        val arguments = intent.extras
-        if (arguments != null) {
-            coord = arguments.get("position") as LatLng
-        }
         val data = dbHelper.getDataNotActive()
         btnReturn = findViewById(R.id.button_return_2)
         btnDelete = findViewById(R.id.button_delete_history)
@@ -39,13 +36,32 @@ class HistoryActivity : AppCompatActivity() {
 
         val inflater = LayoutInflater.from(this)
         for (i in data.reversed()) {
-            // Inflate the view from the layout resource.
             val itemView = inflater.inflate(R.layout.history_item, null, false)
+            val button = Button(this)
+            button.text = "Удалить"
 
             // Здесь можно настроить отображение данных внутри TextView.
             itemView.findViewById<TextView>(R.id.textView_address).text = i.place
             itemView.findViewById<TextView>(R.id.textView_date).text = i.date.split(", ")[0]
             itemView.findViewById<TextView>(R.id.textView_time).text = i.date.split(", ")[1]
+            itemView.findViewById<Button>(R.id.button_delete_parking).setOnClickListener {
+                val alertDialog: AlertDialog.Builder = AlertDialog.Builder(this)
+                alertDialog.setTitle("Удаление")
+                alertDialog.setMessage("Желаете удалить эту метку?")
+                alertDialog.setPositiveButton("Да", DialogInterface.OnClickListener { dialog, _ ->
+                    dbHelper.deleteStroke(i.date)
+                    //recreate() на устройствах Xiaomi вызывает ошибку, она не роняет приложение, но все равно неприятно
+                    val intent = Intent(this, HistoryActivity::class.java)
+                    startActivity(intent)
+                    overridePendingTransition(0, 0)
+                })
+                alertDialog.setNegativeButton("Закрыть", DialogInterface.OnClickListener { dialog, _ ->
+                    // Действие, которое выполнится при нажатии на кнопку "Закрыть"
+                    dialog.dismiss() // Закрыть диалоговое окно
+                })
+
+                alertDialog.show()
+            }
 
             itemView.setOnClickListener {
                 val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
@@ -57,18 +73,24 @@ class HistoryActivity : AppCompatActivity() {
 
         btnReturn.setOnClickListener {
             val intent = Intent(this, MapsActivity::class.java)
-            if (arguments != null) {
-                intent.putExtra("coordinates", coord)
-                intent.putExtra("ButtonAddMark", false)
-                intent.putExtra("ButtonInfo", true)
-            }
             startActivity(intent)
         }
 
         btnDelete.setOnClickListener {
-            dbHelper.deleteAllData()
-            layout.removeViews(2, layout.childCount - 2 )
+            val alertDialog: AlertDialog.Builder = AlertDialog.Builder(this)
+            alertDialog.setTitle("Удаление")
+            alertDialog.setMessage("Желаете удалить историю парковок?")
+            alertDialog.setPositiveButton("Да", DialogInterface.OnClickListener { dialog, _ ->
+                // Действие, которое выполнится при нажатии на кнопку "OK"
+                dbHelper.deleteAllData()
+                layout.removeViews(2, layout.childCount - 2 )
+            })
+            alertDialog.setNegativeButton("Закрыть", DialogInterface.OnClickListener { dialog, _ ->
+                // Действие, которое выполнится при нажатии на кнопку "Закрыть"
+                dialog.dismiss() // Закрыть диалоговое окно
+            })
 
+            alertDialog.show()
         }
     }
 

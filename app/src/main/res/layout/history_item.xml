@@ -37,4 +37,10 @@
         android:paddingBottom="16dp"
         android:textStyle="bold" />
 
+    <Button
+        android:id="@+id/button_delete_parking"
+        android:text="Удалить"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
 </LinearLayout>
