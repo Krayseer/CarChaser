@@ -46,6 +46,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private var markerIsAdd: Boolean = false
     private lateinit var position: LatLng
+    private val dbHelper = MyDatabaseHelper(this)
 
     private lateinit var btnAddMarker: Button
     private lateinit var btnCreateNote: Button
@@ -63,7 +64,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val dbHelper = MyDatabaseHelper(this)
 
         mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -104,15 +104,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     markerIsAdd = false
                     btnCreateNote.isEnabled = false
                     btnAddMarker.text = "Парковаться"
-//                    dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
-//                    adres = getAddressFromCoordinates(position).toString()
-//                    val db: SQLiteDatabase = dbHelper.writableDatabase
-//                    val values: ContentValues = ContentValues()
-//                    values.put("date", dateTime)
-//                    values.put("place", adres)
-//
-//                    db.insert("my_table", null, values)
-//                    db.close()
                 }
             }
             else {
@@ -198,7 +189,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        val dbHelper = MyDatabaseHelper(this)
+        //val dbHelper = MyDatabaseHelper(this)
         val dataActive = dbHelper.getDataActive()
         if (dataActive.isNotEmpty()) {
             position = LatLng(dataActive[0].latitude, dataActive[0].longitude)
@@ -311,6 +302,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             override fun onMarkerDragEnd(marker: Marker) {
                 position = marker.position
+                dbHelper.updatePosition(position.latitude, position.longitude)
                 // Добавить обновление позиции в бд активной метки
             }
         })
