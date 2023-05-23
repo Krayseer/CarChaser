@@ -136,12 +136,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         btnDarkMode.setOnClickListener {
             if (sharedPref.getBoolean("isNight", false)) {
-                btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_hd, null)
+                btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_foreground, null)
                 mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
                 sharedPref.edit().putBoolean("isNight", false).apply()
             }
             else {
-                btnDarkMode.foreground = resources.getDrawable(R.drawable.nightmode_hd, null)
+                btnDarkMode.foreground = resources.getDrawable(R.drawable.nightmode_foreground, null)
                 mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.night_mode))
                 sharedPref.edit().putBoolean("isNight", true).apply()
             }

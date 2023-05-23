@@ -45,7 +45,7 @@
         android:layout_gravity="top|start"
         android:layout_marginTop="10dp"
         android:layout_marginStart="10dp"
-        android:background="@android:color/transparent"/>
+        android:background="@drawable/oval_background" />
 
     <Button
         android:id="@+id/btn_info"

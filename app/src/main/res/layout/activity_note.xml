@@ -2,34 +2,80 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="15dp"
+        android:layout_gravity="center_horizontal">
+
+        <Button
+            android:id="@+id/button_return"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/oval_background"
+            android:foreground="@drawable/ic_back_foreground" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+        <Button
+            android:id="@+id/button_photo"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/oval_background"
+            android:foreground="@drawable/ic_photo_foreground" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+        <Button
+            android:id="@+id/button_send"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/oval_background"
+            android:foreground="@drawable/ic_send_foreground" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/TextViewAddres"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/history_title"
+        android:textColor="@color/white"
+        android:textSize="26sp"
+        android:textStyle="bold"/>
 
     <EditText
         android:id="@+id/editText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Введите текст"/>
-
-    <Button
-        android:id="@+id/button_send"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Отправить"/>
-
-    <Button
-        android:id="@+id/button_return"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Вернуться" />
-    <Button
-        android:id="@+id/button_photo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Фото"/>
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:padding="10dp"
+        android:background="@drawable/edittext_background"
+        android:textColor="@color/white"
+        android:textColorHint="#969696"
+        android:hint="Оставьте комментарий" />
 
     <ImageView
         android:id="@+id/photo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
 
 </LinearLayout>

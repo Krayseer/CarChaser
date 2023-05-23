@@ -1,0 +1,7 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:drawable="@drawable/nightmode_hd"
+        android:height="36dp"
+        android:width="36dp"
+        android:gravity="center" />
+</layer-list>

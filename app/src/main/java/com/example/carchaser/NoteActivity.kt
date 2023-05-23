@@ -13,6 +13,7 @@ import android.provider.MediaStore
 import android.provider.SyncStateContract.Constants
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -32,12 +33,23 @@ class NoteActivity : AppCompatActivity() {
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private val CAMERA_REQUEST_CODE = 1
     private lateinit var currentPhotoPath: String
-    val dbHelper = MyDatabaseHelper(this)
+    private val dbHelper = MyDatabaseHelper(this)
     private lateinit var imageView: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note)
+
+        val textViewAdres = findViewById<TextView>(R.id.TextViewAddres)
+        val dataAdres = dbHelper.getDataActive()
+        if (dataAdres.isNotEmpty()) {
+            textViewAdres.text = dataAdres[0].place
+        }
+
+//        val arguments = intent.extras
+//        if (arguments != null) {
+//            coord = arguments.get("position") as LatLng
+//        }
 
         val buttonReturn = findViewById<Button>(R.id.button_return)
         val takePictureButton = findViewById<Button>(R.id.button_photo)

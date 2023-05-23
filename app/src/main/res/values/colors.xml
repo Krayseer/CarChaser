@@ -10,4 +10,5 @@
     <color name="dark_gray">#A9A9A9</color>
     <color name="red_500">#F44336</color>
     <color name="button_background">#7974FD</color>
+    <color name="background">#000236</color>
 </resources>
