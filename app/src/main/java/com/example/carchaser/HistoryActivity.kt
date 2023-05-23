@@ -41,9 +41,10 @@ class HistoryActivity : AppCompatActivity() {
             button.text = "Удалить"
 
             // Здесь можно настроить отображение данных внутри TextView.
-            itemView.findViewById<TextView>(R.id.textView_address).text = i.place
-            itemView.findViewById<TextView>(R.id.textView_date).text = i.date.split(", ")[0]
-            itemView.findViewById<TextView>(R.id.textView_time).text = i.date.split(", ")[1]
+            itemView.findViewById<TextView>(R.id.textView_address).text = "• " +i.place
+            val date = i.date.split(", ")[0].split(" ")
+            itemView.findViewById<TextView>(R.id.textView_date).text = "• " + date[1] + " " + date[0] + " " + date[2]
+            itemView.findViewById<TextView>(R.id.textView_time).text = "• " + i.date.split(", ")[1]
             itemView.findViewById<Button>(R.id.button_delete_parking).setOnClickListener {
                 val alertDialog: AlertDialog.Builder = AlertDialog.Builder(this)
                 alertDialog.setTitle("Удаление")

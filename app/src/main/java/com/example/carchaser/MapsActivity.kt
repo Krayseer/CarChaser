@@ -119,9 +119,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
          * Тут надо сделать считывание переменной isNight из БД
          */
         if (sharedPref.getBoolean("isNight", false)) {
-            btnDarkMode.foreground = resources.getDrawable(R.drawable.nightmode_hd, null)
+            btnDarkMode.foreground = resources.getDrawable(R.drawable.nightmode_foreground, null)
         } else {
-            btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_hd, null)
+            btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_foreground, null)
         }
 
         btnShared.setOnClickListener {

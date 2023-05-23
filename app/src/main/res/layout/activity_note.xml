@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginTop="2dp"
-        android:layout_marginBottom="15dp"
+        android:layout_marginBottom="20dp"
         android:layout_gravity="center_horizontal">
 
         <Button
@@ -54,10 +54,12 @@
         android:id="@+id/TextViewAddres"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/history_title"
+        android:layout_marginBottom="30dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:textColor="@color/white"
-        android:textSize="26sp"
-        android:textStyle="bold"/>
+        android:textSize="20sp"
+        android:gravity="center"/>
 
     <EditText
         android:id="@+id/editText"
@@ -65,6 +67,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginBottom="15dp"
         android:padding="10dp"
         android:background="@drawable/edittext_background"
         android:textColor="@color/white"
@@ -76,6 +79,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"/>
+        android:layout_marginEnd="16dp" />
 
 </LinearLayout>
