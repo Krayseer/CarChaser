@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.location.Geocoder
 import android.location.Location
+import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -39,14 +40,13 @@ import java.time.format.DateTimeFormatter
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
-    private lateinit var binding: ActivityMapsBinding
-    private lateinit var geocoder: Geocoder
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var dbHelper: DatabaseHelper
 
     private var markerIsAdd: Boolean = false
     private lateinit var position: LatLng
-    private val dbHelper = MyDatabaseHelper(this)
+    private lateinit var defaultPosition: LatLng
 
     private lateinit var btnAddMarker: Button
     private lateinit var btnCreateNote: Button
@@ -54,16 +54,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var btnHistory: Button
     private lateinit var btnShared: Button
 
-
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        geocoder = Geocoder(this)
+        dbHelper = DatabaseHelper(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        binding = ActivityMapsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
+        defaultPosition = LatLng(56.8519, 60.6122)
+        setContentView(ActivityMapsBinding.inflate(layoutInflater).root)
 
         mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -73,8 +71,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         btnDarkMode = findViewById(R.id.button_dark_mode)
         btnHistory = findViewById(R.id.btn_history)
         btnShared = findViewById(R.id.btn_shared)
-        btnCreateNote.isEnabled = false
-
 
         val sharedPref = this.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
         if (isFirstTimeAppLaunch()) {
@@ -96,6 +92,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         }
                     }
                     btnCreateNote.isEnabled = true
+                    btnShared.isEnabled = true
                     btnAddMarker.text = "Удалить"
                 }
                 else {
@@ -103,21 +100,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     mMap.clear()
                     markerIsAdd = false
                     btnCreateNote.isEnabled = false
+                    btnShared.isEnabled=false
                     btnAddMarker.text = "Парковаться"
                 }
             }
             else {
-                /**
-                 * Тут нужно дописать то что находится выше, то есть вынести в функцию и тд
-                 */
-                val defPlace = LatLng(56.8519, 60.6122)
-                addParkingPlace(defPlace)
+                addParkingPlace(defaultPosition)
             }
         }
 
-        /**
-         * Тут надо сделать считывание переменной isNight из БД
-         */
         if (sharedPref.getBoolean("isNight", false)) {
             btnDarkMode.foreground = resources.getDrawable(R.drawable.nightmode_foreground, null)
         } else {
@@ -171,6 +162,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         mMap = googleMap
+
         val sharedPref = this.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
         if (sharedPref.getBoolean("isNight", false)) {
             mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.night_mode))
@@ -185,17 +177,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             val lat = uri?.getQueryParameter("lat")?.toDouble()
             val lng = uri?.getQueryParameter("lng")?.toDouble()
             if (lat != null && lng != null) {
-                addParkingPlace(LatLng(lat, lng))
+                dbHelper.getDataActive()[0].latitude = lat
+                dbHelper.getDataActive()[0].longitude = lng
             }
         }
 
-        //val dbHelper = MyDatabaseHelper(this)
         val dataActive = dbHelper.getDataActive()
         if (dataActive.isNotEmpty()) {
             position = LatLng(dataActive[0].latitude, dataActive[0].longitude)
             addParkingPlace(position)
             markerIsAdd = true
             btnCreateNote.isEnabled = true
+            btnShared.isEnabled = true
             btnAddMarker.text = "Удалить"
         }
 
@@ -244,7 +237,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .position(markerPosition)
             .title("Последняя стоянка")
             .draggable(true))
-
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition, 18f))
     }
 
@@ -254,7 +246,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      * @return полученный адрес по координатам
      */
     private fun getAddressFromCoordinates(coordinates: LatLng): String? {
-        return geocoder
+        return Geocoder(this)
             .getFromLocation(coordinates.latitude, coordinates.longitude, 1)
             ?.get(0)
             ?.getAddressLine(0)
@@ -274,15 +266,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun initMoveCamera() {
         if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) {
-            mMap.isMyLocationEnabled = true
-            LocationServices
-                .getFusedLocationProviderClient(this).lastLocation
-                .addOnSuccessListener { location: Location? ->
-                    if (location != null) {
-                        position = LatLng(location.latitude, location.longitude)
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 18f))
+            if(!isGpsEnabled()) {
+                val ekbPosition = LatLng(56.8519, 60.6122)
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ekbPosition, 10f))
+            } else {
+                mMap.isMyLocationEnabled = true
+                LocationServices
+                    .getFusedLocationProviderClient(this).lastLocation
+                    .addOnSuccessListener { location: Location? ->
+                        if (location != null) {
+                            position = LatLng(location.latitude, location.longitude)
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 18f))
+                        }
                     }
-                }
+            }
         }
         else {
             val ekbPosition = LatLng(56.8519, 60.6122)
@@ -303,7 +300,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             override fun onMarkerDragEnd(marker: Marker) {
                 position = marker.position
                 dbHelper.updatePosition(position.latitude, position.longitude)
-                // Добавить обновление позиции в бд активной метки
             }
         })
     }
@@ -320,6 +316,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         return isFirstTime
     }
 
+    /**
+     * Функция проверяет, подключен ли телефон к интернету
+     */
     private fun isNetworkConnected(): Boolean {
         val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkCapabilities = connectivityManager.activeNetwork ?: return false
@@ -329,6 +328,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
             else -> false
         }
+    }
+
+    /**
+     * Проверить, включен ли у телефона GPS
+     */
+    private fun isGpsEnabled(): Boolean {
+        val locationManager = this.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
 
 }

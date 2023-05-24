@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.provider.SyncStateContract.Constants
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -19,9 +18,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -29,9 +25,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class NoteActivity : AppCompatActivity() {
-    private var imageUri: Uri? = null
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private val CAMERA_REQUEST_CODE = 1
+    val dbHelper = DatabaseHelper(this)
     private lateinit var currentPhotoPath: String
     private val dbHelper = MyDatabaseHelper(this)
     private lateinit var imageView: ImageView

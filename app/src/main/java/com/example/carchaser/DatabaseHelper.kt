@@ -5,14 +5,13 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database", null, 1) {
+class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database", null, 1) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE my_table (_id INTEGER PRIMARY KEY, date TEXT, place TEXT, isActivity INTEGER, latitude REAL, longitude REAL, photo TEXT)")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Upgrade logic goes here
     }
 
     fun insertData(date: String, place: String, isActivity: Int, latitude: Double, longitude: Double) {
@@ -97,60 +96,6 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_databas
 
         return data
     }
-
-
-    fun getDataForDate(datee: String): List<String> {
-        val data = mutableListOf<String>()
-
-        val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM my_table", null)
-
-        if (cursor.moveToFirst()) {
-            do {
-                val date = cursor.getString(cursor.getColumnIndexOrThrow("date"))
-                val place = cursor.getString(cursor.getColumnIndexOrThrow("place"))
-                if(date.startsWith(datee)){
-                    data.add("$date - $place")
-                }
-            } while (cursor.moveToNext())
-        }
-
-        cursor.close()
-        db.close()
-
-        return data
-    }
-
-
-
-    fun getDateData(): List<String> {
-        val data = mutableListOf<String>()
-
-        val db = this.readableDatabase
-
-        val cursor = db.rawQuery("SELECT * FROM my_table", null)
-        var tempString:String = ""
-
-        if (cursor.moveToFirst()) {
-            do {
-                val date = cursor.getString(cursor.getColumnIndexOrThrow("date"))
-                val dateArray = date.split(',')
-                if (dateArray[0] != tempString) {
-                    data.add(dateArray[0])
-                    tempString = dateArray[0]
-                }
-                //val place = cursor.getString(cursor.getColumnIndexOrThrow("place"))
-
-
-            } while (cursor.moveToNext())
-        }
-
-        cursor.close()
-        db.close()
-
-        return data
-    }
-
 
     fun getDataNotActive(): List<InfoEntity> {
         val data = mutableListOf<InfoEntity>()

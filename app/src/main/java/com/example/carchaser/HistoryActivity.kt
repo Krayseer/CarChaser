@@ -1,7 +1,6 @@
 package com.example.carchaser
 
 import android.app.AlertDialog
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
@@ -12,7 +11,6 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
-import com.google.android.gms.maps.model.LatLng
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -20,15 +18,14 @@ class HistoryActivity : AppCompatActivity() {
     private lateinit var layout: LinearLayout
     private lateinit var btnReturn: Button
     private lateinit var btnDelete: Button
-    private lateinit var coord: LatLng
-    private val dbHelper = MyDatabaseHelper(this)
+    private val dbHelper = DatabaseHelper(this)
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_history)
 
-        val dbHelper = MyDatabaseHelper(this)
+        val dbHelper = DatabaseHelper(this)
         val data = dbHelper.getDataNotActive()
         btnReturn = findViewById(R.id.button_return_2)
         btnDelete = findViewById(R.id.button_delete_history)
