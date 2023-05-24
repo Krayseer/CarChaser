@@ -46,7 +46,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private var markerIsAdd: Boolean = false
     private lateinit var position: LatLng
-    private lateinit var defaultPosition: LatLng
+    private var defaultPosition: LatLng = LatLng(56.8519, 60.6122)
 
     private lateinit var btnAddMarker: Button
     private lateinit var btnCreateNote: Button
@@ -60,7 +60,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         dbHelper = DatabaseHelper(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        defaultPosition = LatLng(56.8519, 60.6122)
         setContentView(ActivityMapsBinding.inflate(layoutInflater).root)
 
         mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
@@ -81,16 +80,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             if(ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED){
                 if (!markerIsAdd){
                     markerIsAdd = true
-                    fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-                        if (location != null) {
-                            val currentUserPosition = LatLng(location.latitude, location.longitude)
-                            position = currentUserPosition
-                            addParkingPlace(position)
-                            val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
-                            val address = getAddressFromCoordinates(position).toString()
-                            dbHelper.insertData(date, address, 1, position.latitude, position.longitude)
+                    if(isGpsEnabled()) {
+                        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                            if (location != null) {
+                                position = LatLng(location.latitude, location.longitude)
+                            }
                         }
+                    } else {
+                        position = defaultPosition
                     }
+                    addParkingPlace(position)
+                    val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
+                    val address = getAddressFromCoordinates(position).toString()
+                    dbHelper.insertData(date, address, 1, position.latitude, position.longitude)
                     btnCreateNote.isEnabled = true
                     btnShared.isEnabled = true
                     btnAddMarker.text = "Удалить"
