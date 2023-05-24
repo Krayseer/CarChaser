@@ -10,7 +10,10 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -29,26 +32,40 @@ class NoteActivity : AppCompatActivity() {
     private val CAMERA_REQUEST_CODE = 1
     private val dbHelper = DatabaseHelper(this)
     private lateinit var imageView: ImageView
+    private lateinit var editText:EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note)
 
+        editText = findViewById(R.id.editText)
         val textViewAdres = findViewById<TextView>(R.id.TextViewAddres)
         val dataAdres = dbHelper.getDataActive()
         if (dataAdres.isNotEmpty()) {
             textViewAdres.text = dataAdres[0].place
+            if(dataAdres[0].note != "null")
+                editText.setText(dataAdres[0].note)
         }
 
-//        val arguments = intent.extras
-//        if (arguments != null) {
-//            coord = arguments.get("position") as LatLng
-//        }
 
         val buttonReturn = findViewById<Button>(R.id.button_return)
         val takePictureButton = findViewById<Button>(R.id.button_photo)
         imageView = findViewById(R.id.photo)
         setImageView(imageView)
+
+        editText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                dbHelper.updateNote(s.toString())
+            }
+        })
 
         takePictureButton.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
@@ -65,6 +82,9 @@ class NoteActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Устанавливает фото в ImageView
+     */
     private fun setImageView(imageView: ImageView) {
         val photoFile: File? = findPhotoFile(dbHelper.getPhotoData()[0])
 
@@ -76,6 +96,9 @@ class NoteActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Код, выполняемый при получении разрешений
+     */
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -99,6 +122,9 @@ class NoteActivity : AppCompatActivity() {
         startActivityForResult(captureIntent, CAMERA_REQUEST_CODE)
     }
 
+    /**
+     * Код выполняемый при фотографировании
+     */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
