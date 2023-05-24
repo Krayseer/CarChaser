@@ -27,9 +27,7 @@ import java.util.*
 class NoteActivity : AppCompatActivity() {
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private val CAMERA_REQUEST_CODE = 1
-    val dbHelper = DatabaseHelper(this)
-    private lateinit var currentPhotoPath: String
-    private val dbHelper = MyDatabaseHelper(this)
+    private val dbHelper = DatabaseHelper(this)
     private lateinit var imageView: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
