@@ -19,6 +19,8 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
+import com.example.carchaser.common.Constants
+import com.example.carchaser.common.Messages
 import com.example.carchaser.databinding.ActivityMapsBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -68,8 +70,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         btnRefresh = findViewById(R.id.btn_refresh)
 
         if(!isNetworkConnected()){
-            val message = "Для отображения карты  подключите интернет-соединение"
-            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+            Toast.makeText(this, Messages.MAP_LOADING_ERROR, Toast.LENGTH_LONG).show()
             btnRefresh.isVisible = true
             listOf(btnCreateNote, btnAddMarker, btnDarkMode, btnHistory, btnShared).forEach { btn ->
                 btn.isVisible = false
@@ -85,9 +86,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        val sharedPref = this.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
+        val sharedPref = this.getSharedPreferences(Constants.PREFERENCES_NAME, Context.MODE_PRIVATE)
         if (isFirstTimeAppLaunch()) {
-            sharedPref.edit().putBoolean("isNight", false).apply()
+            sharedPref.edit().putBoolean(Constants.NIGHT_MODE_PREFIX, false).apply()
         }
 
         btnAddMarker.setOnClickListener {
@@ -111,7 +112,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        if (sharedPref.getBoolean("isNight", false)) {
+        if (sharedPref.getBoolean(Constants.NIGHT_MODE_PREFIX, false)) {
             btnDarkMode.foreground = resources.getDrawable(R.drawable.nightmode_foreground, null)
         } else {
             btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_foreground, null)
@@ -119,25 +120,26 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         btnShared.setOnClickListener {
             val markerPosition = dbHelper.getDataActive()
-            val uri = Uri.parse("carchaser://maps?lat=${markerPosition?.latitude}&lng=${markerPosition?.longitude}")
+            val uri = Uri.parse("carchaser://maps?${Constants.REQUEST_PARAM_LATITUDE}=${markerPosition?.latitude}" +
+                    "&${Constants.REQUEST_PARAM_LONGITUDE}=${markerPosition?.longitude}")
             val intent = Intent(Intent.ACTION_SEND)
             intent.type = "text/plain"
             intent.putExtra(Intent.EXTRA_TEXT, uri.toString())
-            val chooserIntent = Intent.createChooser(intent, "Поделиться ссылкой")
+            val chooserIntent = Intent.createChooser(intent, Messages.SHARE_LINK)
             chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(chooserIntent)
         }
 
         btnDarkMode.setOnClickListener {
-            if (sharedPref.getBoolean("isNight", false)) {
+            if (sharedPref.getBoolean(Constants.NIGHT_MODE_PREFIX, false)) {
                 btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_foreground, null)
                 mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.light_mode))
-                sharedPref.edit().putBoolean("isNight", false).apply()
+                sharedPref.edit().putBoolean(Constants.NIGHT_MODE_PREFIX, false).apply()
             }
             else {
                 btnDarkMode.foreground = resources.getDrawable(R.drawable.nightmode_foreground, null)
                 mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.night_mode))
-                sharedPref.edit().putBoolean("isNight", true).apply()
+                sharedPref.edit().putBoolean(Constants.NIGHT_MODE_PREFIX, true).apply()
             }
         }
 
@@ -159,8 +161,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         initCheckGeoPosition()
         mMap = googleMap
 
-        val sharedPref = this.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
-        if (sharedPref.getBoolean("isNight", false)) {
+        val sharedPref = this.getSharedPreferences(Constants.PREFERENCES_NAME, Context.MODE_PRIVATE)
+        if (sharedPref.getBoolean(Constants.NIGHT_MODE_PREFIX, false)) {
             mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.night_mode))
         }
         else {
@@ -170,8 +172,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val intent = intent
         if (intent != null && intent.data != null && intent.scheme == "carchaser") {
             val uri = intent.data
-            val lat = uri?.getQueryParameter("lat")?.toDouble()
-            val lng = uri?.getQueryParameter("lng")?.toDouble()
+            val lat = uri?.getQueryParameter(Constants.REQUEST_PARAM_LATITUDE)?.toDouble()
+            val lng = uri?.getQueryParameter(Constants.REQUEST_PARAM_LONGITUDE)?.toDouble()
             if (lat != null && lng != null) {
                 val place = getAddressFromCoordinates(LatLng(lat, lng)).toString()
                 dbHelper.updatePosition(lat, lng, place)
@@ -213,7 +215,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             for (step in leg.steps) {
                 for (point in step.polyline.decodePath()) {
                     val pos = LatLng(point.lat, point.lng)
-                    mMap.addPolyline(PolylineOptions().add(pos).color(Color.BLUE).width(5f))
+                    mMap.addPolyline(PolylineOptions().add(pos).color(Color.BLUE).width(Constants.POLYLINE_WIDTH))
                 }
             }
         }
@@ -226,17 +228,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     @RequiresApi(Build.VERSION_CODES.O)
     private fun addParkingPlace(markerPosition: LatLng, isSave: Boolean = false) {
-        mMap.addMarker(MarkerOptions().position(markerPosition).title("Последняя стоянка").draggable(true))
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition, 18f))
+        mMap.addMarker(MarkerOptions().position(markerPosition).title(Messages.LAST_STOP).draggable(true))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition, Constants.CAMERA_ZOOM))
         markerIsAdd = true
         btnCreateNote.isEnabled = true
         btnShared.isEnabled = true
-        btnAddMarker.text = "Удалить"
+        btnAddMarker.text = Messages.DELETE
 
         if (isSave) {
-            val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
+            val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern(Constants.DATE_PATTERN)).toString()
             val address = getAddressFromCoordinates(markerPosition).toString()
-            dbHelper.insertData(date, address, 1, markerPosition.latitude, markerPosition.longitude)
+            dbHelper.insertData(date, address, markerPosition.latitude, markerPosition.longitude)
         }
     }
 
@@ -248,8 +250,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.clear()
         markerIsAdd = false
         btnCreateNote.isEnabled = false
-        btnShared.isEnabled=false
-        btnAddMarker.text = "Парковаться"
+        btnShared.isEnabled = false
+        btnAddMarker.text = Messages.PARK
     }
 
     /**
@@ -278,12 +280,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun initMoveCamera() {
         if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PERMISSION_GRANTED) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultPosition, 12f))
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultPosition, Constants.DEFAULT_CAMERA_ZOOM))
             return
         }
 
         if (!isGpsEnabled()) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultPosition, 12f))
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultPosition, Constants.DEFAULT_CAMERA_ZOOM))
         } else {
             mMap.isMyLocationEnabled = true
             LocationServices.getFusedLocationProviderClient(this)
@@ -291,7 +293,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 .addOnSuccessListener { location: Location? ->
                     if (location !== null) {
                         val userPosition = LatLng(location.latitude, location.longitude)
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userPosition, 18f))
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userPosition, Constants.CAMERA_ZOOM))
                     }
                 }
         }
@@ -319,10 +321,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      * Функция проверяет, запущено приложение первый раз или нет
      */
     private fun isFirstTimeAppLaunch(): Boolean {
-        val sharedPref = this.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
-        val isFirstTime = sharedPref.getBoolean("isFirstTime", true)
+        val sharedPref = this.getSharedPreferences(Constants.PREFERENCES_NAME, Context.MODE_PRIVATE)
+        val isFirstTime = sharedPref.getBoolean(Constants.FIRST_TIME_PREFIX, true)
         if (isFirstTime) {
-            sharedPref.edit().putBoolean("isFirstTime", false).apply()
+            sharedPref.edit().putBoolean(Constants.FIRST_TIME_PREFIX, false).apply()
         }
         return isFirstTime
     }

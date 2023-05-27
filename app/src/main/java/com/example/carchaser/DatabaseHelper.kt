@@ -4,36 +4,41 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.example.carchaser.common.Constants
 
-class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database", null, 1) {
+class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_NAME, null, 1) {
 
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE my_table (_id INTEGER PRIMARY KEY, date TEXT, place TEXT, isActivity INTEGER, latitude REAL, longitude REAL, photo TEXT, note TEXT)")
+        db.execSQL("CREATE TABLE ${Constants.DB_TABLE} (_id INTEGER PRIMARY KEY, " +
+                "${Constants.DB_COLUMN_DATE} TEXT, ${Constants.DB_COLUMN_PLACE} TEXT, ${Constants.DB_COLUMN_ACTIVITY} INTEGER, " +
+                "${Constants.DB_COLUMN_LATITUDE} REAL, ${Constants.DB_COLUMN_LONGITUDE} REAL, " +
+                "${Constants.DB_COLUMN_PHOTO} TEXT, ${Constants.DB_COLUMN_NOTE} TEXT)")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
     }
 
-    fun insertData(date: String, place: String, isActivity: Int, latitude: Double, longitude: Double) {
+    fun insertData(date: String, place: String, latitude: Double, longitude: Double) {
         val db = this.writableDatabase
 
         val values = ContentValues()
-        values.put("date", date)
-        values.put("place", place)
-        values.put("isActivity", isActivity)
-        values.put("latitude", latitude)
-        values.put("longitude", longitude)
-        values.put("photo", "null")
-        values.put("note", "null")
+        values.put(Constants.DB_COLUMN_DATE, date)
+        values.put(Constants.DB_COLUMN_PLACE, place)
+        values.put(Constants.DB_COLUMN_ACTIVITY, Constants.IS_ACTIVE_CODE)
+        values.put(Constants.DB_COLUMN_LATITUDE, latitude)
+        values.put(Constants.DB_COLUMN_LONGITUDE, longitude)
+        values.put(Constants.DB_COLUMN_PHOTO, "null")
+        values.put(Constants.DB_COLUMN_NOTE, "null")
 
-        db.insert("my_table", null, values)
+        db.insert(Constants.DB_TABLE, null, values)
 
         db.close()
     }
 
     fun updatePhoto(photoName: String) {
         val db = this.writableDatabase
-        val query = "UPDATE my_table SET photo = \"$photoName\" WHERE isActivity = 1"
+        val query = "UPDATE ${Constants.DB_TABLE} SET ${Constants.DB_COLUMN_PHOTO} = \"$photoName\" " +
+                "WHERE ${Constants.DB_COLUMN_ACTIVITY} = ${Constants.IS_ACTIVE_CODE}"
         db.execSQL(query)
 
         db.close()
@@ -41,7 +46,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database"
 
     fun updateNote(text: String) {
         val db = this.writableDatabase
-        val query = "UPDATE my_table SET note = \"$text\" WHERE isActivity = 1"
+        val query = "UPDATE ${Constants.DB_TABLE} SET ${Constants.DB_COLUMN_NOTE} = \"$text\" " +
+                "WHERE ${Constants.DB_COLUMN_ACTIVITY} = ${Constants.IS_ACTIVE_CODE}"
         db.execSQL(query)
 
         db.close()
@@ -49,7 +55,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database"
 
     fun updatePosition(latitude: Double, longitude: Double, place: String) {
         val db = this.writableDatabase
-        val query = "UPDATE my_table SET latitude = $latitude, longitude = $longitude, place = '$place' WHERE isActivity = 1"
+        val query = "UPDATE ${Constants.DB_TABLE} SET ${Constants.DB_COLUMN_LATITUDE} = $latitude, " +
+                "${Constants.DB_COLUMN_LONGITUDE} = $longitude, ${Constants.DB_COLUMN_PLACE} = '$place' " +
+                "WHERE ${Constants.DB_COLUMN_ACTIVITY} = ${Constants.IS_ACTIVE_CODE}"
         db.execSQL(query)
 
         db.close()
@@ -57,7 +65,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database"
 
     fun updateActivity() {
         val db = this.writableDatabase
-        val query = "UPDATE my_table SET isActivity = 0 WHERE isActivity = 1"
+        val query = "UPDATE ${Constants.DB_TABLE} SET ${Constants.DB_COLUMN_ACTIVITY} = ${Constants.NOT_ACTIVE_CODE} " +
+                "WHERE ${Constants.DB_COLUMN_ACTIVITY} = ${Constants.IS_ACTIVE_CODE}"
         db.execSQL(query)
 
         db.close()
@@ -65,15 +74,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database"
 
     fun getPhotoData(): List<String> {
         val data = mutableListOf<String>()
-
         val db = this.readableDatabase
-
-        val cursor = db.rawQuery("SELECT * FROM my_table WHERE isActivity = 1", null)
+        val cursor = db.rawQuery("SELECT * FROM ${Constants.DB_TABLE} " +
+                "WHERE ${Constants.DB_COLUMN_ACTIVITY} = ${Constants.IS_ACTIVE_CODE}", null)
 
         if (cursor.moveToFirst()) {
             do {
-                val photo = cursor.getString(cursor.getColumnIndexOrThrow("photo"))
-
+                val photo = cursor.getString(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_PHOTO))
                 data.add(photo)
             } while (cursor.moveToNext())
         }
@@ -86,19 +93,18 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database"
 
     fun getDataNotActive(): List<InfoEntity> {
         val data = mutableListOf<InfoEntity>()
-
         val db = this.readableDatabase
-
-        val cursor = db.rawQuery("SELECT * FROM my_table WHERE isActivity = 0", null)
+        val cursor = db.rawQuery("SELECT * FROM ${Constants.DB_TABLE} " +
+                "WHERE ${Constants.DB_COLUMN_ACTIVITY} = ${Constants.NOT_ACTIVE_CODE}", null)
 
         if (cursor.moveToFirst()) {
             do {
                 val entity = InfoEntity()
-                entity.date = cursor.getString(cursor.getColumnIndexOrThrow("date"))
-                entity.place = cursor.getString(cursor.getColumnIndexOrThrow("place"))
-                entity.isActive = cursor.getInt(cursor.getColumnIndexOrThrow("isActivity"))
-                entity.latitude = cursor.getDouble(cursor.getColumnIndexOrThrow("latitude"))
-                entity.longitude = cursor.getDouble(cursor.getColumnIndexOrThrow("longitude"))
+                entity.date = cursor.getString(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_DATE))
+                entity.place = cursor.getString(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_PLACE))
+                entity.isActive = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_ACTIVITY))
+                entity.latitude = cursor.getDouble(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_LATITUDE))
+                entity.longitude = cursor.getDouble(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_LONGITUDE))
 
                 data.add(entity)
             } while (cursor.moveToNext())
@@ -114,18 +120,18 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database"
     fun getDataActive(): InfoEntity? {
         val data = mutableListOf<InfoEntity>()
         val db = this.readableDatabase
-
-        val cursor = db.rawQuery("SELECT * FROM my_table WHERE isActivity = 1", null)
+        val cursor = db.rawQuery("SELECT * FROM ${Constants.DB_TABLE} " +
+                "WHERE ${Constants.DB_COLUMN_ACTIVITY} = ${Constants.IS_ACTIVE_CODE}", null)
 
         if (cursor.moveToFirst()) {
             do {
                 val entity = InfoEntity()
-                entity.date = cursor.getString(cursor.getColumnIndexOrThrow("date"))
-                entity.place = cursor.getString(cursor.getColumnIndexOrThrow("place"))
-                entity.isActive = cursor.getInt(cursor.getColumnIndexOrThrow("isActivity"))
-                entity.latitude = cursor.getDouble(cursor.getColumnIndexOrThrow("latitude"))
-                entity.longitude = cursor.getDouble(cursor.getColumnIndexOrThrow("longitude"))
-                entity.note = cursor.getString(cursor.getColumnIndexOrThrow("note"))
+                entity.date = cursor.getString(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_DATE))
+                entity.place = cursor.getString(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_PLACE))
+                entity.isActive = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_ACTIVITY))
+                entity.latitude = cursor.getDouble(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_LATITUDE))
+                entity.longitude = cursor.getDouble(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_LONGITUDE))
+                entity.note = cursor.getString(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_NOTE))
 
                 data.add(entity)
             } while (cursor.moveToNext())
@@ -139,14 +145,16 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database"
 
     fun deleteAllData() {
         val db = this.writableDatabase
-        val query = "DELETE FROM my_table WHERE isActivity = 0"
+        val query = "DELETE FROM ${Constants.DB_TABLE} " +
+                "WHERE ${Constants.DB_COLUMN_ACTIVITY} = ${Constants.NOT_ACTIVE_CODE}"
         db.execSQL(query)
         db.close()
     }
 
-    fun deleteStroke(datee: String) {
+    fun deleteStroke(parkingDate: String) {
         val db = this.writableDatabase
-        val query = "DELETE FROM my_table WHERE date = \"$datee\""
+        val query = "DELETE FROM ${Constants.DB_TABLE} " +
+                "WHERE ${Constants.DB_COLUMN_DATE} = \"$parkingDate\""
         db.execSQL(query)
         db.close()
     }

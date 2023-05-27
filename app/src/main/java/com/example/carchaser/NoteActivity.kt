@@ -17,6 +17,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.carchaser.common.Constants
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -31,9 +32,6 @@ class NoteActivity : AppCompatActivity() {
     private lateinit var textViewActiveMarker: TextView
     private lateinit var buttonReturn: Button
     private lateinit var takePictureButton: Button
-
-    private val CAMERA_PERMISSION_REQUEST_CODE = 100
-    private val CAMERA_REQUEST_CODE = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,7 +70,7 @@ class NoteActivity : AppCompatActivity() {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                 openCamera()
             } else {
-                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
+                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA), Constants.CAMERA_PERMISSION_REQUEST_CODE)
             }
         }
 
@@ -100,7 +98,7 @@ class NoteActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+        if (requestCode == Constants.CAMERA_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 openCamera()
             }
@@ -110,7 +108,7 @@ class NoteActivity : AppCompatActivity() {
 
     private fun openCamera() {
         val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        startActivityForResult(captureIntent, CAMERA_REQUEST_CODE)
+        startActivityForResult(captureIntent, Constants.CAMERA_REQUEST_CODE)
     }
 
     /**
@@ -119,19 +117,14 @@ class NoteActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == CAMERA_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+        if (requestCode == Constants.CAMERA_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             val photo = data?.extras?.get("data") as Bitmap?
             val photoFile = createImageFile()
             try {
                 val outputStream = FileOutputStream(photoFile)
                 photo?.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
                 outputStream.close()
-                MediaStore.Images.Media.insertImage(
-                    contentResolver,
-                    photoFile.absolutePath,
-                    photoFile.name,
-                    null
-                )
+                MediaStore.Images.Media.insertImage(contentResolver, photoFile.absolutePath, photoFile.name, null)
                 setImageView(imageView)
             } catch (e: IOException) {
                 e.printStackTrace()

@@ -10,6 +10,8 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import com.example.carchaser.common.Constants
+import com.example.carchaser.common.Messages
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -39,24 +41,16 @@ class HistoryActivity : AppCompatActivity() {
             itemView.findViewById<TextView>(R.id.textView_time).text = "• " + markerData.date.split(", ")[1]
 
             itemView.findViewById<Button>(R.id.button_delete_parking).setOnClickListener {
-                val alertDialog: AlertDialog.Builder = AlertDialog.Builder(this)
-                alertDialog.setTitle("Удаление")
-                alertDialog.setMessage("Желаете удалить эту метку?")
-                alertDialog.setPositiveButton("Да") { _, _ ->
+                deleteListener {
                     dbHelper.deleteStroke(markerData.date)
                     val intent = Intent(this, HistoryActivity::class.java)
                     startActivity(intent)
                     overridePendingTransition(0, 0)
                 }
-                alertDialog.setNegativeButton("Закрыть") { dialog, _ ->
-                    dialog.dismiss()
-                }
-
-                alertDialog.show()
             }
 
             itemView.setOnClickListener {
-                val currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
+                val currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern(Constants.DATE_PATTERN)).toString()
                 val address = markerData.place
                 showDialog(currentDate, address, markerData.latitude, markerData.longitude)
             }
@@ -69,35 +63,39 @@ class HistoryActivity : AppCompatActivity() {
         }
 
         btnDelete.setOnClickListener {
-            val alertDialog: AlertDialog.Builder = AlertDialog.Builder(this)
-            alertDialog.setTitle("Удаление")
-            alertDialog.setMessage("Желаете удалить историю парковок?")
-            alertDialog.setPositiveButton("Да") { _, _ ->
+            deleteListener {
                 dbHelper.deleteAllData()
-                layout.removeViews(2, layout.childCount - 2)
+                layout.removeViews(Constants.START_DELETE_MARKER_INDEX, layout.childCount - Constants.START_DELETE_MARKER_INDEX)
             }
-            alertDialog.setNegativeButton("Закрыть") { dialog, _ ->
-                dialog.dismiss()
-            }
-
-            alertDialog.show()
         }
+    }
+
+    private fun deleteListener(deleteAction: () -> Unit) {
+        val alertDialog: AlertDialog.Builder = AlertDialog.Builder(this)
+        alertDialog.setTitle(Messages.ALERT_DELETE)
+        alertDialog.setMessage(Messages.REMOVAL_QUESTION)
+        alertDialog.setPositiveButton(Messages.POSITIVE) { _, _ ->
+            deleteAction()
+        }
+        alertDialog.setNegativeButton(Messages.CLOSE) { dialog, _ ->
+            dialog.dismiss()
+        }
+        alertDialog.show()
     }
 
     private fun showDialog(date: String, address: String, latitude: Double, longitude: Double) {
         val alertDialog: AlertDialog.Builder = AlertDialog.Builder(this)
-        alertDialog.setTitle("Парковка")
-        alertDialog.setMessage("Желаете возобновить эту метку?")
-        alertDialog.setPositiveButton("OK") { _, _ ->
+        alertDialog.setTitle(Messages.PARKING)
+        alertDialog.setMessage(Messages.RESET_MARKER_QUESTION)
+        alertDialog.setPositiveButton(Messages.OK) { _, _ ->
             dbHelper.updateActivity()
-            dbHelper.insertData(date, address, 1, latitude, longitude)
+            dbHelper.insertData(date, address, latitude, longitude)
             val intent = Intent(this, MapsActivity::class.java)
             startActivity(intent)
         }
-        alertDialog.setNegativeButton("Закрыть") { dialog, _ ->
+        alertDialog.setNegativeButton(Messages.CLOSE) { dialog, _ ->
             dialog.dismiss()
         }
-
         alertDialog.show()
     }
 
