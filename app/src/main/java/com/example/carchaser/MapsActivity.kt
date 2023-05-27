@@ -10,6 +10,7 @@ import android.location.Location
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
@@ -116,15 +117,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_foreground, null)
         }
 
-//        btnShared.setOnClickListener {
-//            val uri = Uri.parse("carchaser://maps?lat=${position.latitude}&lng=${position.longitude}")
-//            val intent = Intent(Intent.ACTION_SEND)
-//            intent.type = "text/plain"
-//            intent.putExtra(Intent.EXTRA_TEXT, uri.toString())
-//            val chooserIntent = Intent.createChooser(intent, "Поделиться ссылкой")
-//            chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-//            startActivity(chooserIntent)
-//        }
+        btnShared.setOnClickListener {
+            val markerPosition = dbHelper.getDataActive()
+            val uri = Uri.parse("carchaser://maps?lat=${markerPosition?.latitude}&lng=${markerPosition?.longitude}")
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = "text/plain"
+            intent.putExtra(Intent.EXTRA_TEXT, uri.toString())
+            val chooserIntent = Intent.createChooser(intent, "Поделиться ссылкой")
+            chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(chooserIntent)
+        }
 
         btnDarkMode.setOnClickListener {
             if (sharedPref.getBoolean("isNight", false)) {
