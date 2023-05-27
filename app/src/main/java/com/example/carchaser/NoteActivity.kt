@@ -11,7 +11,6 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -48,10 +47,10 @@ class NoteActivity : AppCompatActivity() {
         takePictureButton = findViewById(R.id.button_photo)
 
         val activeMarkerData = dbHelper.getDataActive()
-        if (activeMarkerData.isNotEmpty()) {
-            textViewActiveMarker.text = activeMarkerData[0].place
-            if(activeMarkerData[0].note != "null")
-                editText.setText(activeMarkerData[0].note)
+        if (activeMarkerData != null) {
+            textViewActiveMarker.text = activeMarkerData.place
+            if(activeMarkerData.note != "null")
+                editText.setText(activeMarkerData.note)
         }
         setImageView(imageView)
 

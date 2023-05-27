@@ -17,6 +17,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.view.isVisible
 import com.example.carchaser.databinding.ActivityMapsBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -48,6 +49,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var btnDarkMode: Button
     private lateinit var btnHistory: Button
     private lateinit var btnShared: Button
+    private lateinit var btnRefresh: Button
 
     private var markerIsAdd: Boolean = false
     private val defaultPosition: LatLng = LatLng(56.8519, 60.6122)
@@ -55,24 +57,32 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        if(!isNetworkConnected()){
-            Toast.makeText(this, "Ошибка загрузки карты", Toast.LENGTH_LONG).show()
-            return;
-        }
-
-        dbHelper = DatabaseHelper(this)
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         setContentView(ActivityMapsBinding.inflate(layoutInflater).root)
-
-        mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
 
         btnCreateNote = findViewById(R.id.btn_info)
         btnAddMarker = findViewById(R.id.btn_add_marker)
         btnDarkMode = findViewById(R.id.button_dark_mode)
         btnHistory = findViewById(R.id.btn_history)
         btnShared = findViewById(R.id.btn_shared)
+        btnRefresh = findViewById(R.id.btn_refresh)
+
+        if(!isNetworkConnected()){
+            val message = "Для отображения карты  подключите интернет-соединение"
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+            btnRefresh.isVisible = true
+            listOf(btnCreateNote, btnAddMarker, btnDarkMode, btnHistory, btnShared).forEach { btn ->
+                btn.isVisible = false
+            }
+            btnRefresh.setOnClickListener {
+                this.recreate()
+            }
+            return;
+        }
+
+        dbHelper = DatabaseHelper(this)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
 
         val sharedPref = this.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
         if (isFirstTimeAppLaunch()) {
@@ -167,8 +177,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         val dataActive = dbHelper.getDataActive()
-        if (dataActive.isNotEmpty()) {
-            val markerPosition = LatLng(dataActive[0].latitude, dataActive[0].longitude)
+        if (dataActive != null) {
+            val markerPosition = LatLng(dataActive.latitude, dataActive.longitude)
             addParkingPlace(markerPosition)
         }
 
@@ -245,7 +255,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      * @param coordinates координаты, по которым нужно получить адрес
      * @return полученный адрес по координатам
      */
-    private fun getAddressFromCoordinates(coordinates: LatLng): String? {
+    fun getAddressFromCoordinates(coordinates: LatLng): String? {
         return Geocoder(this)
             .getFromLocation(coordinates.latitude, coordinates.longitude, 1)
             ?.get(0)

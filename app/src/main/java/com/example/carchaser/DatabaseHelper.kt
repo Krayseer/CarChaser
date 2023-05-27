@@ -63,28 +63,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database"
         db.close()
     }
 
-    fun getData(): List<String> {
-        val data = mutableListOf<String>()
-
-        val db = this.readableDatabase
-
-        val cursor = db.rawQuery("SELECT * FROM my_table", null)
-
-        if (cursor.moveToFirst()) {
-            do {
-                val date = cursor.getString(cursor.getColumnIndexOrThrow("date"))
-                val place = cursor.getString(cursor.getColumnIndexOrThrow("place"))
-
-                data.add("$date - $place")
-            } while (cursor.moveToNext())
-        }
-
-        cursor.close()
-        db.close()
-
-        return data
-    }
-
     fun getPhotoData(): List<String> {
         val data = mutableListOf<String>()
 
@@ -133,7 +111,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database"
     }
 
 
-    fun getDataActive(): List<InfoEntity> {
+    fun getDataActive(): InfoEntity? {
         val data = mutableListOf<InfoEntity>()
         val db = this.readableDatabase
 
@@ -156,7 +134,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database"
         cursor.close()
         db.close()
 
-        return data
+        return if (data.isNotEmpty()) data[0] else null
     }
 
     fun deleteAllData() {
@@ -172,4 +150,5 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database"
         db.execSQL(query)
         db.close()
     }
+
 }
