@@ -47,9 +47,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, "my_database"
         db.close()
     }
 
-    fun updatePosition(latitude: Double, longitude: Double) {
+    fun updatePosition(latitude: Double, longitude: Double, place: String) {
         val db = this.writableDatabase
-        val query = "UPDATE my_table SET latitude = $latitude, longitude = $longitude WHERE isActivity = 1"
+        val query = "UPDATE my_table SET latitude = $latitude, longitude = $longitude, place = '$place' WHERE isActivity = 1"
         db.execSQL(query)
 
         db.close()

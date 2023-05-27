@@ -10,7 +10,6 @@ import android.location.Location
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
@@ -44,19 +43,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var dbHelper: DatabaseHelper
 
-    private var markerIsAdd: Boolean = false
-    private lateinit var position: LatLng
-    private var defaultPosition: LatLng = LatLng(56.8519, 60.6122)
-
     private lateinit var btnAddMarker: Button
     private lateinit var btnCreateNote: Button
     private lateinit var btnDarkMode: Button
     private lateinit var btnHistory: Button
     private lateinit var btnShared: Button
 
+    private var markerIsAdd: Boolean = false
+    private val defaultPosition: LatLng = LatLng(56.8519, 60.6122)
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if(!isNetworkConnected()){
+            Toast.makeText(this, "Ошибка загрузки карты", Toast.LENGTH_LONG).show()
+            return;
+        }
 
         dbHelper = DatabaseHelper(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -77,37 +80,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         btnAddMarker.setOnClickListener {
-            if(ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED){
-                if (!markerIsAdd){
-                    markerIsAdd = true
-                    if(isGpsEnabled()) {
+            if(!markerIsAdd) {
+                if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) {
+                    if (isGpsEnabled()) {
                         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                             if (location != null) {
-                                position = LatLng(location.latitude, location.longitude)
+                                val userPosition = LatLng(location.latitude, location.longitude)
+                                addParkingPlace(userPosition, isSave = true)
                             }
                         }
                     } else {
-                        position = defaultPosition
+                        addParkingPlace(defaultPosition, isSave = true)
                     }
-                    addParkingPlace(position)
-                    val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
-                    val address = getAddressFromCoordinates(position).toString()
-                    dbHelper.insertData(date, address, 1, position.latitude, position.longitude)
-                    btnCreateNote.isEnabled = true
-                    btnShared.isEnabled = true
-                    btnAddMarker.text = "Удалить"
+                } else {
+                    addParkingPlace(defaultPosition, isSave = true)
                 }
-                else {
-                    dbHelper.updateActivity()
-                    mMap.clear()
-                    markerIsAdd = false
-                    btnCreateNote.isEnabled = false
-                    btnShared.isEnabled=false
-                    btnAddMarker.text = "Парковаться"
-                }
-            }
-            else {
-                addParkingPlace(defaultPosition)
+            } else {
+                deleteParkingPlace()
             }
         }
 
@@ -117,15 +106,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_foreground, null)
         }
 
-        btnShared.setOnClickListener {
-            val uri = Uri.parse("carchaser://maps?lat=${position.latitude}&lng=${position.longitude}")
-            val intent = Intent(Intent.ACTION_SEND)
-            intent.type = "text/plain"
-            intent.putExtra(Intent.EXTRA_TEXT, uri.toString())
-            val chooserIntent = Intent.createChooser(intent, "Поделиться ссылкой")
-            chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(chooserIntent)
-        }
+//        btnShared.setOnClickListener {
+//            val uri = Uri.parse("carchaser://maps?lat=${position.latitude}&lng=${position.longitude}")
+//            val intent = Intent(Intent.ACTION_SEND)
+//            intent.type = "text/plain"
+//            intent.putExtra(Intent.EXTRA_TEXT, uri.toString())
+//            val chooserIntent = Intent.createChooser(intent, "Поделиться ссылкой")
+//            chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//            startActivity(chooserIntent)
+//        }
 
         btnDarkMode.setOnClickListener {
             if (sharedPref.getBoolean("isNight", false)) {
@@ -148,21 +137,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         btnHistory.setOnClickListener {
             val intent = Intent(this, HistoryActivity::class.java)
-            if (markerIsAdd) {
-                intent.putExtra("position", position)
-            }
             startActivity(intent)
         }
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onMapReady(googleMap: GoogleMap) {
-
-        if(!isNetworkConnected()){
-            Toast.makeText(this, "Ошибка загрузки карты", Toast.LENGTH_LONG).show()
-            return;
-        }
-
+        initCheckGeoPosition()
         mMap = googleMap
 
         val sharedPref = this.getSharedPreferences("MyAppPref", Context.MODE_PRIVATE)
@@ -179,23 +161,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             val lat = uri?.getQueryParameter("lat")?.toDouble()
             val lng = uri?.getQueryParameter("lng")?.toDouble()
             if (lat != null && lng != null) {
-                dbHelper.getDataActive()[0].latitude = lat
-                dbHelper.getDataActive()[0].longitude = lng
+                val place = getAddressFromCoordinates(LatLng(lat, lng)).toString()
+                dbHelper.updatePosition(lat, lng, place)
             }
         }
 
         val dataActive = dbHelper.getDataActive()
         if (dataActive.isNotEmpty()) {
-            position = LatLng(dataActive[0].latitude, dataActive[0].longitude)
-            addParkingPlace(position)
-            markerIsAdd = true
-            btnCreateNote.isEnabled = true
-            btnShared.isEnabled = true
-            btnAddMarker.text = "Удалить"
+            val markerPosition = LatLng(dataActive[0].latitude, dataActive[0].longitude)
+            addParkingPlace(markerPosition)
         }
 
         updateParkingPositionListener()
-        initCheckGeoPosition()
         initMoveCamera()
 
     }
@@ -233,13 +210,34 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     /**
      * Функция добавления маркера на текущее местоположение пользователя
      * @param markerPosition позиция, на которую нужно поставить маркер
+     * @param isSave является ли маркер новым. Если true, то сохраняем данные в БД
      */
-    private fun addParkingPlace(markerPosition: LatLng) {
-        mMap.addMarker(MarkerOptions()
-            .position(markerPosition)
-            .title("Последняя стоянка")
-            .draggable(true))
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun addParkingPlace(markerPosition: LatLng, isSave: Boolean = false) {
+        mMap.addMarker(MarkerOptions().position(markerPosition).title("Последняя стоянка").draggable(true))
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition, 18f))
+        markerIsAdd = true
+        btnCreateNote.isEnabled = true
+        btnShared.isEnabled = true
+        btnAddMarker.text = "Удалить"
+
+        if (isSave) {
+            val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd yyyy, hh:mm:ss a")).toString()
+            val address = getAddressFromCoordinates(markerPosition).toString()
+            dbHelper.insertData(date, address, 1, markerPosition.latitude, markerPosition.longitude)
+        }
+    }
+
+    /**
+     * Удалить маркер с карты и сохранить данные о парковке в БД
+     */
+    private fun deleteParkingPlace() {
+        dbHelper.updateActivity()
+        mMap.clear()
+        markerIsAdd = false
+        btnCreateNote.isEnabled = false
+        btnShared.isEnabled=false
+        btnAddMarker.text = "Парковаться"
     }
 
     /**
@@ -267,25 +265,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      * геопозиции пользователя
      */
     private fun initMoveCamera() {
-        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) {
-            if(!isGpsEnabled()) {
-                val ekbPosition = LatLng(56.8519, 60.6122)
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ekbPosition, 10f))
-            } else {
-                mMap.isMyLocationEnabled = true
-                LocationServices
-                    .getFusedLocationProviderClient(this).lastLocation
-                    .addOnSuccessListener { location: Location? ->
-                        if (location != null) {
-                            position = LatLng(location.latitude, location.longitude)
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 18f))
-                        }
-                    }
-            }
+        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PERMISSION_GRANTED) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultPosition, 12f))
+            return
         }
-        else {
-            val ekbPosition = LatLng(56.8519, 60.6122)
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ekbPosition, 10f))
+
+        if (!isGpsEnabled()) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultPosition, 12f))
+        } else {
+            mMap.isMyLocationEnabled = true
+            LocationServices.getFusedLocationProviderClient(this)
+                .lastLocation
+                .addOnSuccessListener { location: Location? ->
+                    if (location !== null) {
+                        val userPosition = LatLng(location.latitude, location.longitude)
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userPosition, 18f))
+                    }
+                }
         }
     }
 
@@ -300,8 +296,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             override fun onMarkerDrag(marker: Marker) { }
 
             override fun onMarkerDragEnd(marker: Marker) {
-                position = marker.position
-                dbHelper.updatePosition(position.latitude, position.longitude)
+                val markerPosition = marker.position
+                val updatedPlace = getAddressFromCoordinates(markerPosition).toString()
+                dbHelper.updatePosition(markerPosition.latitude, markerPosition.longitude, updatedPlace)
             }
         })
     }
