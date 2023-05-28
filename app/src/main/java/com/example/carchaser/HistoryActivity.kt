@@ -42,7 +42,7 @@ class HistoryActivity : AppCompatActivity() {
 
             itemView.findViewById<Button>(R.id.button_delete_parking).setOnClickListener {
                 deleteListener {
-                    dbHelper.deleteStroke(markerData.date)
+                    dbHelper.deleteParkingData(markerData.date)
                     val intent = Intent(this, HistoryActivity::class.java)
                     startActivity(intent)
                     overridePendingTransition(0, 0)

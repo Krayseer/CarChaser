@@ -105,7 +105,9 @@ class NoteActivity : AppCompatActivity() {
         }
     }
 
-
+    /**
+     * Запустить камеру
+     */
     private fun openCamera() {
         val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         startActivityForResult(captureIntent, Constants.CAMERA_REQUEST_CODE)
@@ -132,6 +134,9 @@ class NoteActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Создать фотографию и добавить её к активной стоянке
+     */
     private fun createImageFile(): File {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
@@ -141,6 +146,9 @@ class NoteActivity : AppCompatActivity() {
         return imageFile
     }
 
+    /**
+     * Найти в телефоне фотографию стоянки
+     */
     private fun findPhotoFile(fileName: String): File? {
         val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         val files = storageDir?.listFiles()

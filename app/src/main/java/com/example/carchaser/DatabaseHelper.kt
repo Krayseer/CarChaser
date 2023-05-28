@@ -8,6 +8,9 @@ import com.example.carchaser.common.Constants
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_NAME, null, 1) {
 
+    /**
+     * Инициализация таблицы в БД
+     */
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE ${Constants.DB_TABLE} (_id INTEGER PRIMARY KEY, " +
                 "${Constants.DB_COLUMN_DATE} TEXT, ${Constants.DB_COLUMN_PLACE} TEXT, ${Constants.DB_COLUMN_ACTIVITY} INTEGER, " +
@@ -18,6 +21,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
     }
 
+    /**
+     * Сохранение в БД данных о текущей стоянке
+     */
     fun insertData(date: String, place: String, latitude: Double, longitude: Double) {
         val db = this.writableDatabase
 
@@ -35,6 +41,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_
         db.close()
     }
 
+    /**
+     * Обновить/добавить фотографию в стоянке
+     */
     fun updatePhoto(photoName: String) {
         val db = this.writableDatabase
         val query = "UPDATE ${Constants.DB_TABLE} SET ${Constants.DB_COLUMN_PHOTO} = \"$photoName\" " +
@@ -44,6 +53,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_
         db.close()
     }
 
+    /**
+     * Обновить/добавить дополнительную информацию в стоянке
+     */
     fun updateNote(text: String) {
         val db = this.writableDatabase
         val query = "UPDATE ${Constants.DB_TABLE} SET ${Constants.DB_COLUMN_NOTE} = \"$text\" " +
@@ -53,6 +65,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_
         db.close()
     }
 
+    /**
+     * Обновление в БД позиции маркера при его передвижении на новое место
+     */
     fun updatePosition(latitude: Double, longitude: Double, place: String) {
         val db = this.writableDatabase
         val query = "UPDATE ${Constants.DB_TABLE} SET ${Constants.DB_COLUMN_LATITUDE} = $latitude, " +
@@ -63,6 +78,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_
         db.close()
     }
 
+    /**
+     * Установить статус стоянки как неактивной
+     */
     fun updateActivity() {
         val db = this.writableDatabase
         val query = "UPDATE ${Constants.DB_TABLE} SET ${Constants.DB_COLUMN_ACTIVITY} = ${Constants.NOT_ACTIVE_CODE} " +
@@ -72,6 +90,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_
         db.close()
     }
 
+    /**
+     * Получить фотографию стоянки
+     */
     fun getPhotoData(): List<String> {
         val data = mutableListOf<String>()
         val db = this.readableDatabase
@@ -91,6 +112,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_
         return data
     }
 
+    /**
+     * Получить список неактивных(удаленных) стоянок
+     */
     fun getDataNotActive(): List<InfoEntity> {
         val data = mutableListOf<InfoEntity>()
         val db = this.readableDatabase
@@ -116,7 +140,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_
         return data
     }
 
-
+    /**
+     * Поулчить данные об активной стоянке
+     */
     fun getDataActive(): InfoEntity? {
         val data = mutableListOf<InfoEntity>()
         val db = this.readableDatabase
@@ -143,6 +169,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_
         return if (data.isNotEmpty()) data[0] else null
     }
 
+    /**
+     * Удалить все стоянки из истории
+     */
     fun deleteAllData() {
         val db = this.writableDatabase
         val query = "DELETE FROM ${Constants.DB_TABLE} " +
@@ -151,10 +180,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_
         db.close()
     }
 
-    fun deleteStroke(parkingDate: String) {
+    /**
+     * Удалить конкретную стоянку из истории
+     */
+    fun deleteParkingData(parkingData: String) {
         val db = this.writableDatabase
         val query = "DELETE FROM ${Constants.DB_TABLE} " +
-                "WHERE ${Constants.DB_COLUMN_DATE} = \"$parkingDate\""
+                "WHERE ${Constants.DB_COLUMN_DATE} = \"$parkingData\""
         db.execSQL(query)
         db.close()
     }
