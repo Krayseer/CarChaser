@@ -1,0 +1,7 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:drawable="@drawable/ic_route"
+        android:height="30dp"
+        android:width="28dp"
+        android:gravity="center" />
+</layer-list>
