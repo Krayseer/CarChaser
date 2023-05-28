@@ -54,7 +54,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var btnShared: Button
     private lateinit var btnRefresh: Button
 
-    private var markerIsAdd: Boolean = false
     private val defaultPosition: LatLng = LatLng(56.8519, 60.6122)
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -92,7 +91,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         btnAddMarker.setOnClickListener {
-            if(!markerIsAdd) {
+            if(dbHelper.getDataActive() == null) {
                 if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) {
                     if (isGpsEnabled()) {
                         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
@@ -230,7 +229,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun addParkingPlace(markerPosition: LatLng, isSave: Boolean = false) {
         mMap.addMarker(MarkerOptions().position(markerPosition).title(Messages.LAST_STOP).draggable(true))
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition, Constants.CAMERA_ZOOM))
-        markerIsAdd = true
         btnCreateNote.isEnabled = true
         btnShared.isEnabled = true
         btnAddMarker.text = Messages.DELETE
@@ -248,7 +246,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun deleteParkingPlace() {
         dbHelper.updateActivity()
         mMap.clear()
-        markerIsAdd = false
         btnCreateNote.isEnabled = false
         btnShared.isEnabled = false
         btnAddMarker.text = Messages.PARK

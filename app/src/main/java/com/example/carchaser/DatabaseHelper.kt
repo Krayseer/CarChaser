@@ -143,35 +143,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, Constants.DB_
         return if (data.isNotEmpty()) data[0] else null
     }
 
-    /**
-     * Возвращает true, если в БД есть активные метки, иначе false
-     */
-    fun haveActive(): Boolean {
-        val data = mutableListOf<InfoEntity>()
-        val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM ${Constants.DB_TABLE} " +
-                "WHERE ${Constants.DB_COLUMN_ACTIVITY} = ${Constants.IS_ACTIVE_CODE}", null)
-
-        if (cursor.moveToFirst()) {
-            do {
-                val entity = InfoEntity()
-                entity.date = cursor.getString(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_DATE))
-                entity.place = cursor.getString(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_PLACE))
-                entity.isActive = cursor.getInt(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_ACTIVITY))
-                entity.latitude = cursor.getDouble(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_LATITUDE))
-                entity.longitude = cursor.getDouble(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_LONGITUDE))
-                entity.note = cursor.getString(cursor.getColumnIndexOrThrow(Constants.DB_COLUMN_NOTE))
-
-                data.add(entity)
-            } while (cursor.moveToNext())
-        }
-
-        cursor.close()
-        db.close()
-
-        return data.isNotEmpty()
-    }
-
     fun deleteAllData() {
         val db = this.writableDatabase
         val query = "DELETE FROM ${Constants.DB_TABLE} " +
