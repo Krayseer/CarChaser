@@ -49,8 +49,8 @@
 
         <Button
             android:id="@+id/button_delete_parking"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="43dp"
+            android:layout_height="43dp"
             android:layout_marginStart="200dp"
             android:foreground="@drawable/delete_mini"
 

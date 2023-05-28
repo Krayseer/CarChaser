@@ -14,26 +14,26 @@
         tools:layout="@layout/activity_maps" />
 
     <Button
-            android:id="@+id/btn_refresh"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:foreground="@drawable/ic_send_foreground"
-            android:background="@drawable/oval_background"
-            android:visibility="invisible"
-            android:layout_gravity="bottom|end"
-            android:layout_marginBottom="40dp"
-            android:layout_marginEnd="40dp"/>
+        android:id="@+id/btn_refresh"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:foreground="@drawable/ic_refresh_foreground"
+        android:background="@drawable/oval_background"
+        android:visibility="invisible"
+        android:layout_gravity="top|start"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="10dp"/>
 
     <Button
         android:id="@+id/btn_shared"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:foreground="@drawable/ic_send_foreground"
         android:background="@drawable/oval_background"
         android:enabled="false"
-        android:layout_gravity="bottom|end"
-        android:layout_marginBottom="10dp"
-        android:layout_marginEnd="10dp"/>
+        android:layout_gravity="top|start"
+        android:layout_marginTop="70dp"
+        android:layout_marginStart="10dp"/>
 
     <Button
         android:id="@+id/btn_add_marker"
