@@ -15,6 +15,9 @@ import com.example.carchaser.common.Messages
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * Активность страницы об истории стоянок
+ */
 class HistoryActivity : AppCompatActivity() {
 
     private lateinit var layout: LinearLayout

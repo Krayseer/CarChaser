@@ -24,6 +24,9 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Активность страницы с доп.информацией о стоянке
+ */
 class NoteActivity : AppCompatActivity() {
 
     private lateinit var imageView: ImageView
