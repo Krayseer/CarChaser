@@ -4,7 +4,7 @@ object Messages {
 
     const val SHARE_LINK = "Поделиться ссылкой"
 
-    const val MAP_LOADING_ERROR = "Для отображения карты  подключите интернет-соединение"
+    const val MAP_LOADING_ERROR = "Для отображения карты подключите интернет-соединение"
 
     const val LAST_STOP = "Последняя стоянка"
 

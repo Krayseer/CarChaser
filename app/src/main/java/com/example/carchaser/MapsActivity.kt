@@ -54,7 +54,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var btnShared: Button
     private lateinit var btnRefresh: Button
 
-    private val defaultPosition: LatLng = LatLng(56.8519, 60.6122)
+    private val defaultPosition: LatLng = LatLng(56.83562271089083, 60.6108858021941)
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
