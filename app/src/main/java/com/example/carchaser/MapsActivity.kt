@@ -53,7 +53,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var btnCreateNote: Button
     private lateinit var btnDarkMode: Button
     private lateinit var btnHistory: Button
-    private lateinit var btnShared: Button
+    /*private lateinit var btnShared: Button*/
     private lateinit var btnRefresh: Button
 
     private val defaultPosition: LatLng = LatLng(56.83562271089083, 60.6108858021941)
@@ -67,13 +67,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         btnAddMarker = findViewById(R.id.btn_add_marker)
         btnDarkMode = findViewById(R.id.button_dark_mode)
         btnHistory = findViewById(R.id.btn_history)
-        btnShared = findViewById(R.id.btn_shared)
+        /*btnShared = findViewById(R.id.btn_shared)*/
         btnRefresh = findViewById(R.id.btn_refresh)
 
         if(!isNetworkConnected()){
             Toast.makeText(this, Messages.MAP_LOADING_ERROR, Toast.LENGTH_LONG).show()
             btnRefresh.isVisible = true
-            listOf(btnCreateNote, btnAddMarker, btnDarkMode, btnHistory, btnShared).forEach { btn ->
+            listOf(btnCreateNote, btnAddMarker, btnDarkMode, btnHistory, /*btnShared*/).forEach { btn ->
                 btn.isVisible = false
             }
             btnRefresh.setOnClickListener {
@@ -119,7 +119,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             btnDarkMode.foreground = resources.getDrawable(R.drawable.daymode_foreground, null)
         }
 
-        btnShared.setOnClickListener {
+        /*btnShared.setOnClickListener {
             val markerPosition = dbHelper.getDataActive()
             val uri = Uri.parse("carchaser://maps?${Constants.REQUEST_PARAM_LATITUDE}=${markerPosition?.latitude}" +
                     "&${Constants.REQUEST_PARAM_LONGITUDE}=${markerPosition?.longitude}")
@@ -129,7 +129,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             val chooserIntent = Intent.createChooser(intent, Messages.SHARE_LINK)
             chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(chooserIntent)
-        }
+        }*/
 
         btnDarkMode.setOnClickListener {
             if (sharedPref.getBoolean(Constants.NIGHT_MODE_PREFIX, false)) {
@@ -232,7 +232,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.addMarker(MarkerOptions().position(markerPosition).title(Messages.LAST_STOP).draggable(true))
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition, Constants.CAMERA_ZOOM))
         btnCreateNote.isEnabled = true
-        btnShared.isEnabled = true
+        /*btnShared.isEnabled = true*/
         btnAddMarker.text = Messages.DELETE
 
         if (isSave) {
@@ -249,7 +249,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         dbHelper.updateActivity()
         mMap.clear()
         btnCreateNote.isEnabled = false
-        btnShared.isEnabled = false
+        /*btnShared.isEnabled = false*/
         btnAddMarker.text = Messages.PARK
     }
 

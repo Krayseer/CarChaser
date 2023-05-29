@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
@@ -18,6 +19,7 @@ import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.carchaser.common.Constants
+import com.example.carchaser.common.Messages
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -35,6 +37,7 @@ class NoteActivity : AppCompatActivity() {
     private lateinit var textViewActiveMarker: TextView
     private lateinit var buttonReturn: Button
     private lateinit var takePictureButton: Button
+    private lateinit var btnShared: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +49,7 @@ class NoteActivity : AppCompatActivity() {
         textViewActiveMarker = findViewById(R.id.TextViewAddres)
         buttonReturn = findViewById(R.id.button_return)
         takePictureButton = findViewById(R.id.button_photo)
+        btnShared = findViewById(R.id.btn_shared)
 
         val activeMarkerData = dbHelper.getDataActive()
         if (activeMarkerData != null) {
@@ -81,6 +85,18 @@ class NoteActivity : AppCompatActivity() {
             val intent = Intent(this, MapsActivity::class.java)
             startActivity(intent)
             overridePendingTransition(androidx.appcompat.R.anim.abc_popup_enter, androidx.appcompat.R.anim.abc_popup_exit)
+        }
+
+        btnShared.setOnClickListener {
+            val markerPosition = dbHelper.getDataActive()
+            val uri = Uri.parse("carchaser://maps?${Constants.REQUEST_PARAM_LATITUDE}=${markerPosition?.latitude}" +
+                    "&${Constants.REQUEST_PARAM_LONGITUDE}=${markerPosition?.longitude}")
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = "text/plain"
+            intent.putExtra(Intent.EXTRA_TEXT, uri.toString())
+            val chooserIntent = Intent.createChooser(intent, Messages.SHARE_LINK)
+            chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(chooserIntent)
         }
     }
 
