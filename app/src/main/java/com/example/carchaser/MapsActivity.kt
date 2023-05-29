@@ -10,7 +10,6 @@ import android.location.Location
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
@@ -55,6 +54,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var btnHistory: Button
     /*private lateinit var btnShared: Button*/
     private lateinit var btnRefresh: Button
+    private lateinit var btnRoute: Button
 
     private val defaultPosition: LatLng = LatLng(56.83562271089083, 60.6108858021941)
 
@@ -69,6 +69,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         btnHistory = findViewById(R.id.btn_history)
         /*btnShared = findViewById(R.id.btn_shared)*/
         btnRefresh = findViewById(R.id.btn_refresh)
+        btnRoute = findViewById(R.id.btn_route)
 
         if(!isNetworkConnected()){
             Toast.makeText(this, Messages.MAP_LOADING_ERROR, Toast.LENGTH_LONG).show()
@@ -94,6 +95,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         btnAddMarker.setOnClickListener {
             if(dbHelper.getDataActive() == null) {
+                btnRoute.isVisible = true
                 if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) {
                     if (isGpsEnabled()) {
                         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
@@ -109,6 +111,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     addParkingPlace(defaultPosition, isSave = true)
                 }
             } else {
+                btnRoute.isVisible = false
                 deleteParkingPlace()
             }
         }
@@ -184,11 +187,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val dataActive = dbHelper.getDataActive()
         if (dataActive != null) {
             val markerPosition = LatLng(dataActive.latitude, dataActive.longitude)
+            btnRoute.isVisible = true
             addParkingPlace(markerPosition)
         }
 
         updateParkingPositionListener()
         initMoveCamera()
+        /*onMarkerClick()*/
 
     }
 
@@ -312,6 +317,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 val markerPosition = marker.position
                 val updatedPlace = getAddressFromCoordinates(markerPosition).toString()
                 dbHelper.updatePosition(markerPosition.latitude, markerPosition.longitude, updatedPlace)
+            }
+        })
+    }
+
+    private fun onMarkerClick() {
+        mMap.setOnMarkerClickListener(object : GoogleMap.OnMarkerClickListener {
+            override fun onMarkerClick(marker: Marker): Boolean {
+                btnRoute.isVisible = true
+                TODO("Not yet implemented")
             }
         })
     }
