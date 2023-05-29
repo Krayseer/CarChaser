@@ -4,8 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@drawable/history_item_background"
-    android:paddingBottom="16dp"
-    >
+    android:paddingBottom="16dp">
 
     <TextView
         android:id="@+id/textView_address"
@@ -18,7 +17,6 @@
         android:paddingTop="16dp"
         android:paddingBottom="8dp"
         android:textColor="@color/dark_gray" />
-
 
     <RelativeLayout
         android:layout_width="match_parent"
